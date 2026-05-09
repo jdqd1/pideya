@@ -1,0 +1,37 @@
+.app-shell {
+  align-items: center;
+  background: #f7f7f4;
+  color: #181816;
+  display: flex;
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.welcome {
+  margin: 0 auto;
+  max-width: 720px;
+  text-align: center;
+}
+
+.eyebrow {
+  color: #6b6a64;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+
+.welcome h1 {
+  font-size: clamp(3rem, 12vw, 7rem);
+  line-height: 0.95;
+  margin: 0;
+}
+
+.summary {
+  color: #4f4e49;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  margin: 24px auto 0;
+  max-width: 520px;
+}
