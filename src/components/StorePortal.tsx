@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react';
 import {
   CheckCircle2,
   Clock,
+  MapPin,
   PackageCheck,
   Phone,
   Plus,
   Power,
   Store,
   Tags,
+  WalletCards,
   XCircle,
 } from 'lucide-react';
 import { ActionButton, EmptyState, MetricCard, Panel, SafeImage, StatusPill } from './Shared';
@@ -154,6 +156,18 @@ export function StorePortal({
                     </span>
                   ))}
                 </div>
+                <div className="order-payment-detail">
+                  <span>
+                    <Phone size={14} aria-hidden="true" /> {order.customerPhone}
+                  </span>
+                  <span>
+                    <MapPin size={14} aria-hidden="true" /> {order.address}
+                  </span>
+                  <span>
+                    <WalletCards size={14} aria-hidden="true" /> {order.paymentMethod}
+                  </span>
+                  {order.notes ? <span>{order.notes}</span> : null}
+                </div>
                 <div className="order-card-footer">
                   <span>{formatCurrency(order.subtotal + order.deliveryFee)}</span>
                   <div className="button-row">
@@ -164,7 +178,7 @@ export function StorePortal({
                           onClick={() => onOrderStatusChange(order.id, 'accepted')}
                           variant="success"
                         >
-                          Aceptar
+                          Confirmar
                         </ActionButton>
                         <ActionButton
                           icon={XCircle}

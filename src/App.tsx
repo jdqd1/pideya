@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Bike, LayoutDashboard, ShieldCheck, Store, UserRound } from 'lucide-react';
+import { LayoutDashboard, LogIn, LogOut, Menu, UserPlus } from 'lucide-react';
 import './App.css';
 import pideyaLogo from './assets/pideya-logo.png';
 import { AdminPortal } from './components/AdminPortal';
+import { AuthModal } from './components/AuthModal';
 import { ClientPortal } from './components/ClientPortal';
 import { DeliveryPortal } from './components/DeliveryPortal';
+import { RoleDrawer } from './components/RoleDrawer';
 import { StorePortal } from './components/StorePortal';
 import {
   deliveries as initialDeliveries,
@@ -13,17 +15,15 @@ import {
   stores as initialStores,
   users,
 } from './data/mockData';
-import type { CartItem, Order, OrderStatus, PaymentMethod, Product, Role } from './types';
+import type { AppUser, CartItem, Order, OrderStatus, PaymentMethod, Product, Role } from './types';
 
-const roleNavigation: Array<{ id: Role; label: string; icon: typeof UserRound }> = [
-  { id: 'client', label: 'Cliente', icon: UserRound },
-  { id: 'store', label: 'Tienda', icon: Store },
-  { id: 'delivery', label: 'Delivery', icon: Bike },
-  { id: 'admin', label: 'Admin', icon: ShieldCheck },
-];
+type AuthMode = 'login' | 'register';
 
 function App() {
   const [activeRole, setActiveRole] = useState<Role>('client');
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [stores, setStores] = useState(initialStores);
   const [products, setProducts] = useState(initialProducts);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -35,6 +35,25 @@ function App() {
     () => orders.filter((order) => !['delivered', 'cancelled'].includes(order.status)).length,
     [orders],
   );
+  const isPublicClientHome = activeRole === 'client' && !currentUser;
+
+  const handleAuthComplete = (user: AppUser) => {
+    setCurrentUser(user);
+    setActiveRole(user.role);
+    setAuthMode(null);
+    setDrawerOpen(false);
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    setActiveRole('client');
+    setDrawerOpen(false);
+  };
+
+  const navigateRole = (role: Role) => {
+    setActiveRole(role);
+    setDrawerOpen(false);
+  };
 
   const addToCart = (product: Product, option?: string) => {
     setSelectedStoreId(product.storeId);
@@ -181,41 +200,58 @@ function App() {
   };
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <div className="brand-lockup">
-          <img src={pideyaLogo} alt="PideYa" />
-          <div>
-            <strong>PideYa</strong>
-            <span>Prototipo operativo · Zona Norte</span>
+    <main className={`app-shell ${isPublicClientHome ? 'public-client-shell' : ''}`}>
+      {!isPublicClientHome ? (
+        <header className="topbar">
+          <div className="brand-lockup">
+            <img src={pideyaLogo} alt="PideYa" />
+            <div>
+              <strong>PideYa</strong>
+              <span>Menu y pedidos en Zona Norte</span>
+            </div>
           </div>
-        </div>
 
-        <nav className="role-nav" aria-label="Navegacion por roles">
-          {roleNavigation.map(({ id, label, icon: Icon }) => (
-            <button
-              className={activeRole === id ? 'active' : ''}
-              key={id}
-              onClick={() => setActiveRole(id)}
-              type="button"
-            >
-              <Icon aria-hidden="true" size={17} strokeWidth={2.2} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
+          <div className="topbar-actions">
+            <div className="prototype-status">
+              <LayoutDashboard size={17} aria-hidden="true" />
+              <span>{activeOrdersCount} pedidos activos</span>
+            </div>
 
-        <div className="prototype-status">
-          <LayoutDashboard size={17} aria-hidden="true" />
-          <span>{activeOrdersCount} pedidos activos</span>
-        </div>
-      </header>
+            {currentUser ? (
+              <>
+                <div className="session-chip">
+                  <strong>{currentUser.name}</strong>
+                  <span>{currentUser.role}</span>
+                </div>
+                <button className="auth-top-button ghost" onClick={logout} type="button">
+                  <LogOut size={17} aria-hidden="true" />
+                  <span>Salir</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="auth-top-button ghost" onClick={() => setAuthMode('login')} type="button">
+                  <LogIn size={17} aria-hidden="true" />
+                  <span>Iniciar sesion</span>
+                </button>
+                <button className="auth-top-button primary" onClick={() => setAuthMode('register')} type="button">
+                  <UserPlus size={17} aria-hidden="true" />
+                  <span>Registrarse</span>
+                </button>
+              </>
+            )}
+          </div>
+        </header>
+      ) : null}
 
       {activeRole === 'client' ? (
         <ClientPortal
           cart={cart}
+          currentUser={currentUser?.role === 'client' ? currentUser : null}
           onAddToCart={addToCart}
           onCreateOrder={createOrder}
+          onOpenLogin={() => setAuthMode('login')}
+          onOpenRegister={() => setAuthMode('register')}
           onRemoveCartItem={removeCartItem}
           onSelectStore={setSelectedStoreId}
           onUpdateCartItem={updateCartItem}
@@ -223,7 +259,6 @@ function App() {
           products={products}
           selectedStoreId={selectedStoreId}
           stores={stores}
-          users={users}
         />
       ) : null}
 
@@ -258,6 +293,30 @@ function App() {
           products={products}
           stores={stores}
           users={users}
+        />
+      ) : null}
+
+      {currentUser ? (
+        <button className="footer-menu-button" onClick={() => setDrawerOpen(true)} type="button">
+          <Menu size={18} aria-hidden="true" />
+          <span>Menu</span>
+        </button>
+      ) : null}
+
+      <RoleDrawer
+        activeRole={activeRole}
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onLogout={logout}
+        onNavigate={navigateRole}
+        user={currentUser}
+      />
+
+      {authMode ? (
+        <AuthModal
+          mode={authMode}
+          onClose={() => setAuthMode(null)}
+          onComplete={handleAuthComplete}
         />
       ) : null}
     </main>
