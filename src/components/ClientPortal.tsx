@@ -9,16 +9,15 @@ import {
   ChevronUp,
   Clock,
   Coffee,
+  Croissant,
   CupSoda,
-  GlassWater,
+  CakeSlice,
   Grid2x2,
   Heart,
   IceCreamBowl,
   LogIn,
-  LockKeyhole,
   MapPin,
   Minus,
-  Pill,
   Plus,
   Search,
   ShoppingBag,
@@ -37,7 +36,7 @@ import { ActionButton, EmptyState, SafeImage } from './Shared';
 import type { AppUser, CartItem, Order, PaymentMethod, Product, Storefront } from '../types';
 import { formatCurrency } from '../utils/format';
 
-type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops';
+type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops' | 'bakery' | 'desserts';
 type ClientView = 'home' | 'restaurants';
 
 interface ClientPortalProps {
@@ -70,12 +69,54 @@ interface FoodFilter {
   tone: string;
 }
 
-const categoryCards = [
-  { key: 'restaurants', label: 'Restaurantes', icon: Utensils },
-  { key: 'drinks', label: 'Bebidas', icon: GlassWater },
-  { key: 'pharmacy', label: 'Farmacias', icon: Pill },
-  { key: 'shops', label: 'Tiendas', icon: ShoppingBag },
-] as const;
+interface CategoryCard {
+  key: CategoryKey;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+const featuredCategoryCards: CategoryCard[] = [
+  {
+    key: 'restaurants',
+    label: 'Comida',
+    description: 'Restaurantes y platos listos para pedir',
+    icon: Utensils,
+  },
+  {
+    key: 'desserts',
+    label: 'Postres',
+    description: 'Tortas, helados y antojos dulces',
+    icon: CakeSlice,
+  },
+];
+
+const scrollCategoryCards: CategoryCard[] = [
+  {
+    key: 'bakery',
+    label: 'Panaderia',
+    description: 'Panes, croissants y dulces horneados',
+    icon: Croissant,
+  },
+  {
+    key: 'shops',
+    label: 'Víveres',
+    description: 'Mercado, despensa y productos de casa',
+    icon: ShoppingBag,
+  },
+  {
+    key: 'pharmacy',
+    label: 'Farmacia',
+    description: 'Salud y bienestar para ti',
+    icon: Plus,
+  },
+  {
+    key: 'drinks',
+    label: 'Bebidas',
+    description: 'Refrescos, jugos y mas',
+    icon: CupSoda,
+  },
+];
 
 const primaryFoodFilters: FoodFilter[] = [
   { value: 'Todas', label: 'Todos', icon: Grid2x2, tone: 'blue' },
@@ -83,6 +124,7 @@ const primaryFoodFilters: FoodFilter[] = [
   { value: 'Arepas', label: 'Arepas', icon: Utensils, tone: 'green' },
   { value: 'Sushi', label: 'Asiatica', icon: Soup, tone: 'coral' },
   { value: 'Bebidas', label: 'Bebidas', icon: CupSoda, tone: 'mint' },
+  { value: 'Panaderia', label: 'Panaderia', icon: Croissant, tone: 'amber' },
   { value: 'Postres', label: 'Postres', icon: IceCreamBowl, tone: 'violet' },
 ];
 
@@ -90,8 +132,12 @@ const nonRestaurantTypes = ['Farmacia', 'Minimarket'];
 
 const isFoodStore = (store: Storefront) => !nonRestaurantTypes.includes(store.type);
 
+const foodFilterAliases: Record<string, string[]> = {
+  Postres: ['Postres', 'Tortas', 'Helados'],
+};
+
 const matchesFoodFilter = (product: Product, foodType: string) =>
-  foodType === 'Todas' || product.category === foodType;
+  foodType === 'Todas' || (foodFilterAliases[foodType] ?? [foodType]).includes(product.category);
 
 const getFoodFilterIcon = (category: string) => {
   if (category === 'Cafe') {
@@ -199,6 +245,17 @@ export function ClientPortal({
       }
 
       if (categoryKey === 'shops' && store.type !== 'Minimarket') {
+        return false;
+      }
+
+      if (categoryKey === 'bakery' && !storeProducts.some((product) => product.category === 'Panaderia')) {
+        return false;
+      }
+
+      if (
+        categoryKey === 'desserts' &&
+        !storeProducts.some((product) => matchesFoodFilter(product, 'Postres'))
+      ) {
         return false;
       }
 
@@ -337,14 +394,26 @@ export function ClientPortal({
       : categoryKey === 'pharmacy'
         ? 'Farmacias'
         : categoryKey === 'shops'
-          ? 'Tiendas'
-          : 'Restaurantes';
+          ? 'Víveres'
+          : categoryKey === 'bakery'
+            ? 'Panaderias'
+            : categoryKey === 'desserts'
+              ? 'Postres'
+              : 'Comida';
 
   const selectCategory = (key: CategoryKey) => {
     setClientView('restaurants');
     setCategoryKey(key);
     setActiveRestaurantStoreId(null);
-    setFoodType(key === 'drinks' ? 'Bebidas' : 'Todas');
+    setFoodType(
+      key === 'drinks'
+        ? 'Bebidas'
+        : key === 'bakery'
+          ? 'Panaderia'
+          : key === 'desserts'
+            ? 'Postres'
+            : 'Todas',
+    );
     window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
   };
 
@@ -474,20 +543,25 @@ export function ClientPortal({
         className={`dish-card ${compact ? 'compact' : ''} ${isUnavailable ? 'unavailable' : ''}`.trim()}
         key={product.id}
       >
-        <SafeImage src={product.imageUrl} alt="" />
+        {compact ? (
+          <div className="dish-image-frame">
+            <SafeImage src={product.imageUrl} alt="" />
+            {renderBadge()}
+          </div>
+        ) : (
+          <SafeImage src={product.imageUrl} alt="" />
+        )}
         <div className="dish-card-body">
           <div>
             <div className={`dish-title-row ${compact ? 'compact-title' : ''}`.trim()}>
               <strong>{product.name}</strong>
-              {compact ? (
-                renderBadge()
-              ) : (
+              {!compact ? (
                 <button aria-label={`Guardar ${product.name}`} className="dish-favorite" type="button">
                   <Heart size={22} aria-hidden="true" />
                 </button>
-              )}
+              ) : null}
             </div>
-            <p>{product.description}</p>
+            {!compact ? <p>{product.description}</p> : null}
           </div>
           {!compact ? (
             <div className="dish-meta-row">
@@ -601,6 +675,34 @@ export function ClientPortal({
     </button>
   );
 
+  const renderCategoryCard = (card: CategoryCard, compact = false) => {
+    const Icon = card.icon;
+
+    return (
+      <button
+        className={`category-card category-card-${card.key} ${compact ? 'category-card-compact' : ''} ${
+          categoryKey === card.key ? 'active' : ''
+        }`.trim()}
+        key={card.key}
+        onClick={() => selectCategory(card.key)}
+        type="button"
+      >
+        <span className={`category-icon category-${card.key}`}>
+          <Icon size={42} aria-hidden="true" strokeWidth={2.1} />
+        </span>
+        <span className="category-card-copy">
+          <strong>{card.label}</strong>
+          <small>{card.description}</small>
+        </span>
+        <span className="category-card-meta">
+          <MapPin size={18} aria-hidden="true" fill="currentColor" />
+          <span>Ver tiendas</span>
+          <ChevronRight size={26} aria-hidden="true" />
+        </span>
+      </button>
+    );
+  };
+
   return (
     <>
       <div className="mobile-home-frame">
@@ -642,24 +744,17 @@ export function ClientPortal({
             </label>
 
             <section className="reference-categories" aria-label="Categorias principales">
-              {categoryCards.map(({ key, label, icon: Icon }) => (
-                <button
-                  className={categoryKey === key ? 'active' : ''}
-                  key={key}
-                  onClick={() => selectCategory(key)}
-                  type="button"
-                >
-                  <span className={`category-icon category-${key}`}>
-                    <Icon size={42} aria-hidden="true" strokeWidth={2.1} />
-                  </span>
-                  <strong>{label}</strong>
-                </button>
-              ))}
+              <div className="category-feature-grid">
+                {featuredCategoryCards.map((card) => renderCategoryCard(card))}
+              </div>
+              <div className="category-scroll-row" aria-label="Mas categorias">
+                {scrollCategoryCards.map((card) => renderCategoryCard(card, true))}
+              </div>
             </section>
 
             <section className="reference-section home-products-section">
               <div className="reference-section-heading">
-                <h2>Productos populares</h2>
+                <h2>Mas vendidos</h2>
                 <button onClick={() => selectCategory('restaurants')} type="button">
                   Ver restaurantes
                   <ChevronRight size={18} aria-hidden="true" />
@@ -825,7 +920,7 @@ export function ClientPortal({
                       <h2>
                         {foodType === 'Todas'
                           ? `${exploreTitle} cerca de vos`
-                          : `Restaurantes que venden ${selectedFoodLabel}`}
+                          : `Locales con ${selectedFoodLabel}`}
                       </h2>
                       <span>{`${visibleStores.length} locales disponibles`}</span>
                     </div>
@@ -1002,10 +1097,6 @@ export function ClientPortal({
                       <strong>{formatCurrency(total)}</strong>
                       <ChevronRight size={28} aria-hidden="true" />
                     </button>
-                    <span className="secure-payment-note">
-                      <LockKeyhole size={16} aria-hidden="true" />
-                      Pago seguro
-                    </span>
                   </div>
                 )}
               </>

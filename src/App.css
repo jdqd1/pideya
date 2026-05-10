@@ -22,7 +22,7 @@
     linear-gradient(180deg, #f9fbff 0%, var(--bg) 46%);
   color: var(--ink);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   padding: 18px 18px 108px;
 }
 
@@ -220,7 +220,7 @@
   margin: 0 auto;
   max-width: 980px;
   min-height: 100vh;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .reference-hero {
@@ -359,8 +359,9 @@
   margin: -66px 42px 34px;
   min-height: 108px;
   padding: 0 34px;
-  position: relative;
-  z-index: 4;
+  position: sticky;
+  top: 12px;
+  z-index: 34;
 }
 
 .reference-search input {
@@ -379,62 +380,209 @@
 
 .reference-categories {
   display: grid;
-  gap: 22px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  min-width: 0;
   padding: 0 42px 42px;
 }
 
-.reference-categories button {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #edf1f7;
-  border-radius: 22px;
-  box-shadow: 0 12px 32px rgba(21, 32, 51, 0.09);
-  color: var(--ink);
-  cursor: pointer;
+.category-feature-grid {
   display: grid;
-  gap: 18px;
-  justify-items: center;
-  min-height: 196px;
-  padding: 24px 16px;
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
 }
 
-.reference-categories button.active {
-  border-color: rgba(18, 104, 243, 0.7);
-  box-shadow: 0 0 0 4px rgba(18, 104, 243, 0.12), 0 14px 32px rgba(21, 32, 51, 0.1);
+.category-scroll-row {
+  display: grid;
+  gap: 18px;
+  grid-auto-columns: minmax(220px, 28%);
+  grid-auto-flow: column;
+  margin-right: -42px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 2px 42px 16px 2px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.category-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.reference-categories .category-card {
+  align-items: start;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.58) 42%, rgba(255, 255, 255, 0) 72%),
+    var(--category-bg) center bottom / cover no-repeat;
+  border: 1px solid rgba(226, 234, 246, 0.9);
+  border-radius: 22px;
+  box-shadow: 0 20px 44px rgba(21, 32, 51, 0.13);
+  color: #071633;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  isolation: isolate;
+  min-height: clamp(330px, 36vw, 410px);
+  min-width: 0;
+  overflow: hidden;
+  padding: 22px 20px 20px;
+  position: relative;
+  scroll-snap-align: start;
+  text-align: left;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.reference-categories .category-card:hover,
+.reference-categories .category-card:focus-visible {
+  border-color: color-mix(in srgb, var(--category-accent) 56%, #ffffff);
+  box-shadow: 0 0 0 4px var(--category-ring), 0 24px 48px rgba(21, 32, 51, 0.15);
+  transform: translateY(-2px);
+}
+
+.reference-categories .category-card.active {
+  border-color: color-mix(in srgb, var(--category-accent) 68%, #ffffff);
+  box-shadow: 0 0 0 4px var(--category-ring), 0 24px 48px rgba(21, 32, 51, 0.15);
 }
 
 .reference-categories strong {
-  font-size: 1.28rem;
+  display: block;
+  font-size: clamp(1.22rem, 2.7vw, 1.54rem);
+  line-height: 1.03;
 }
 
 .category-icon {
   align-items: center;
-  border-radius: 22px;
+  background: var(--category-accent);
+  border-radius: 999px;
+  box-shadow: 0 12px 28px var(--category-shadow);
+  color: #ffffff;
   display: inline-flex;
-  height: 76px;
+  height: 70px;
   justify-content: center;
-  width: 76px;
+  position: relative;
+  width: 70px;
+  z-index: 1;
 }
 
-.category-restaurants {
-  background: #eaf2ff;
-  color: var(--blue);
+.category-card-copy {
+  display: grid;
+  gap: 12px;
+  max-width: 190px;
+  position: relative;
+  z-index: 1;
 }
 
-.category-drinks {
-  background: #e6f7ff;
-  color: #1286d9;
+.category-card-copy small {
+  color: #263244;
+  display: block;
+  font-size: clamp(0.96rem, 2vw, 1.08rem);
+  font-weight: 500;
+  line-height: 1.4;
 }
 
-.category-pharmacy {
-  background: #ebf8f1;
-  color: var(--green);
+.category-card-meta {
+  align-items: center;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  box-shadow: 0 12px 26px rgba(21, 32, 51, 0.12);
+  color: var(--category-accent);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 48px;
+  margin-top: auto;
+  padding: 0 12px;
+  position: relative;
+  z-index: 1;
 }
 
-.category-shops {
-  background: #eef0ff;
-  color: #5b5ce2;
+.category-card-meta span {
+  color: #071633;
+  font-size: 0.98rem;
+  font-weight: 800;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-card-compact {
+  border-radius: 20px;
+  gap: 15px;
+  min-height: clamp(248px, 28vw, 310px);
+  padding: 18px 16px 16px;
+}
+
+.category-card-compact .category-icon {
+  height: 58px;
+  width: 58px;
+}
+
+.category-card-compact .category-icon svg {
+  height: 32px;
+  width: 32px;
+}
+
+.category-card-compact .category-card-copy {
+  gap: 8px;
+  max-width: 160px;
+}
+
+.category-card-compact .category-card-copy small {
+  font-size: 0.9rem;
+  line-height: 1.26;
+}
+
+.category-card-compact .category-card-meta {
+  min-height: 42px;
+}
+
+.category-card-compact .category-card-meta span {
+  font-size: 0.86rem;
+}
+
+.category-card-restaurants {
+  --category-accent: #1268f3;
+  --category-bg: url('./assets/home-category-restaurants.jpg');
+  --category-ring: rgba(18, 104, 243, 0.14);
+  --category-shadow: rgba(18, 104, 243, 0.28);
+}
+
+.category-card-drinks {
+  --category-accent: #10a873;
+  --category-bg: url('./assets/home-category-drinks.jpg');
+  --category-ring: rgba(16, 168, 115, 0.15);
+  --category-shadow: rgba(16, 168, 115, 0.26);
+}
+
+.category-card-pharmacy {
+  --category-accent: #1268f3;
+  --category-bg: url('./assets/home-category-pharmacy.jpg');
+  --category-ring: rgba(18, 104, 243, 0.14);
+  --category-shadow: rgba(18, 104, 243, 0.26);
+}
+
+.category-card-shops {
+  --category-accent: #7439c8;
+  --category-bg: url('./assets/home-category-shops.jpg');
+  --category-ring: rgba(116, 57, 200, 0.14);
+  --category-shadow: rgba(116, 57, 200, 0.27);
+}
+
+.category-card-bakery {
+  --category-accent: #d8892c;
+  --category-bg: url('./assets/home-category-bakery.jpg');
+  --category-ring: rgba(216, 137, 44, 0.15);
+  --category-shadow: rgba(216, 137, 44, 0.26);
+}
+
+.category-card-desserts {
+  --category-accent: #f05b8f;
+  --category-bg: url('./assets/home-category-desserts.jpg');
+  --category-ring: rgba(240, 91, 143, 0.15);
+  --category-shadow: rgba(240, 91, 143, 0.26);
 }
 
 .reference-section {
@@ -1235,7 +1383,144 @@
   padding-bottom: 56px;
 }
 
-.home-product-preview-list,
+.home-product-preview-list {
+  display: grid;
+  gap: 12px;
+  grid-auto-columns: minmax(188px, 214px);
+  grid-auto-flow: column;
+  margin-right: -42px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 2px 42px 14px 2px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.home-product-preview-list::-webkit-scrollbar {
+  display: none;
+}
+
+.home-product-preview-list .dish-card {
+  scroll-snap-align: start;
+}
+
+.home-product-preview-list .dish-card.compact {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  grid-template-columns: none;
+  height: auto;
+  min-height: 0;
+  padding: 10px;
+}
+
+.home-product-preview-list .dish-card.compact > img {
+  aspect-ratio: 1.08;
+  border-radius: 16px;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  width: 100%;
+}
+
+.home-product-preview-list .dish-card.compact .dish-image-frame {
+  min-width: 0;
+  position: relative;
+}
+
+.home-product-preview-list .dish-card.compact .dish-image-frame img {
+  aspect-ratio: 1.08;
+  background: #e8edf5;
+  border-radius: 16px;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.home-product-preview-list .dish-card.compact .dish-image-frame .dish-badge {
+  left: 8px;
+  max-width: calc(100% - 16px);
+  position: absolute;
+  top: 8px;
+  z-index: 1;
+}
+
+.home-product-preview-list .dish-card.compact .dish-card-body {
+  align-content: start;
+  display: grid;
+  gap: 7px;
+  min-height: 0;
+}
+
+.home-product-preview-list .dish-card.compact .dish-title-row.compact-title {
+  align-items: start;
+  display: grid;
+  gap: 7px;
+  grid-template-columns: 1fr;
+}
+
+.home-product-preview-list .dish-card.compact .dish-title-row.compact-title strong {
+  display: -webkit-box;
+  flex: initial;
+  font-size: 0.94rem;
+  line-height: 1.08;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.home-product-preview-list .dish-card.compact .dish-badge {
+  justify-self: start;
+  max-width: 100%;
+}
+
+.home-product-preview-list .dish-card.compact .dish-footer {
+  align-items: center;
+  display: grid;
+  gap: 7px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 0;
+}
+
+.home-product-preview-list .dish-card.compact .dish-footer > span {
+  font-size: clamp(0.94rem, 3.4vw, 1.05rem);
+  line-height: 1.05;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.home-product-preview-list .dish-card.compact .dish-add-button.product-add-button {
+  flex: 0 0 auto;
+  height: 38px;
+  justify-self: end;
+  width: 38px;
+}
+
+.home-product-preview-list .dish-card.compact .dish-add-button.product-quantity-control {
+  display: grid;
+  gap: 3px;
+  grid-column: 1 / -1;
+  grid-template-columns: 30px minmax(14px, 1fr) 30px;
+  justify-self: stretch;
+  min-height: 38px;
+  min-width: 0;
+  padding: 3px;
+  width: 100%;
+}
+
+.home-product-preview-list .dish-card.compact .dish-add-button.product-quantity-control button {
+  height: 30px;
+  width: 30px;
+}
+
+.home-product-preview-list .dish-card.compact .dish-add-button.product-quantity-control span {
+  font-size: 0.82rem;
+  min-width: 0;
+}
+
 .dish-list,
 .menu-product-list {
   display: grid;
@@ -2748,16 +3033,6 @@
   font-size: 0.98rem;
 }
 
-.secure-payment-note {
-  align-items: center;
-  color: #667085;
-  display: inline-flex;
-  font-size: 0.76rem;
-  font-weight: 800;
-  gap: 8px;
-  justify-content: center;
-}
-
 .form-error,
 .form-success {
   border-radius: 8px;
@@ -3352,13 +3627,33 @@
   }
 
   .reference-categories {
-    gap: 14px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
     padding: 0 22px 34px;
   }
 
-  .reference-categories button {
-    min-height: 146px;
+  .category-feature-grid {
+    gap: 16px;
+  }
+
+  .category-scroll-row {
+    gap: 12px;
+    grid-auto-columns: minmax(186px, 39vw);
+    margin-right: -22px;
+    padding: 2px 22px 14px 2px;
+  }
+
+  .reference-categories .category-card {
+    min-height: 320px;
+    padding: 20px;
+  }
+
+  .reference-categories .category-card-compact {
+    min-height: 250px;
+    padding: 16px 14px 14px;
+  }
+
+  .category-card-copy {
+    max-width: min(210px, 78%);
   }
 
   .reference-section {
@@ -3387,6 +3682,12 @@
 
   .promo-row {
     grid-auto-columns: minmax(248px, 82vw);
+  }
+
+  .home-product-preview-list {
+    grid-auto-columns: minmax(174px, 196px);
+    margin-right: -22px;
+    padding: 2px 22px 14px 2px;
   }
 
   .home-filter-chips {
@@ -3619,21 +3920,56 @@
   }
 
   .reference-categories {
-    gap: 9px;
+    gap: 12px;
     padding-bottom: 32px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .reference-categories button {
-    border-radius: 16px;
+  .category-feature-grid {
     gap: 10px;
-    min-height: 104px;
-    padding: 12px 5px;
+  }
+
+  .category-scroll-row {
+    gap: 10px;
+    grid-auto-columns: minmax(142px, 43vw);
+    margin-right: -14px;
+    padding: 0 14px 12px 0;
+  }
+
+  .reference-categories .category-card {
+    border-radius: 18px;
+    gap: 12px;
+    min-height: 260px;
+    padding: 12px 10px 10px;
+  }
+
+  .reference-categories .category-card-compact {
+    gap: 10px;
+    min-height: 222px;
+    padding: 10px 9px 9px;
   }
 
   .reference-categories strong {
-    font-size: clamp(0.68rem, 2.7vw, 0.76rem);
+    font-size: clamp(0.92rem, 4.2vw, 1.08rem);
     line-height: 1.1;
+  }
+
+  .category-card-copy {
+    gap: 5px;
+    max-width: 122px;
+  }
+
+  .category-card-copy small {
+    font-size: clamp(0.68rem, 3.2vw, 0.78rem);
+    line-height: 1.22;
+  }
+
+  .category-card-compact .category-card-copy {
+    gap: 4px;
+    max-width: 112px;
+  }
+
+  .category-card-compact .category-card-copy small {
+    font-size: clamp(0.62rem, 2.8vw, 0.7rem);
   }
 
   .reference-section-heading h2 {
@@ -3645,14 +3981,63 @@
   }
 
   .category-icon {
-    border-radius: 16px;
     height: 48px;
     width: 48px;
   }
 
   .category-icon svg {
-    height: 31px;
-    width: 31px;
+    height: 27px;
+    width: 27px;
+  }
+
+  .category-card-compact .category-icon {
+    height: 42px;
+    width: 42px;
+  }
+
+  .category-card-compact .category-icon svg {
+    height: 23px;
+    width: 23px;
+  }
+
+  .category-card-meta {
+    gap: 4px;
+    min-height: 36px;
+    padding: 0 8px;
+  }
+
+  .category-card-meta span {
+    font-size: clamp(0.64rem, 2.8vw, 0.72rem);
+  }
+
+  .category-card-meta > svg:first-child {
+    height: 15px;
+    width: 15px;
+  }
+
+  .category-card-meta > svg:last-child {
+    height: 21px;
+    width: 21px;
+  }
+
+  .category-card-compact .category-card-meta {
+    gap: 2px;
+    min-height: 34px;
+    padding: 0 6px;
+  }
+
+  .category-card-compact .category-card-meta span {
+    font-size: clamp(0.58rem, 2.55vw, 0.64rem);
+  }
+
+  .category-card-compact .category-card-meta > svg:first-child {
+    height: 13px;
+    width: 13px;
+  }
+
+  .category-card-compact .category-card-meta > svg:last-child {
+    height: 18px;
+    width: 18px;
   }
 
   .promo-card {
@@ -4251,10 +4636,16 @@
     padding-top: 11px;
   }
 
-  .home-product-preview-list,
   .dish-list,
   .menu-product-list {
     gap: 12px;
+  }
+
+  .home-product-preview-list {
+    gap: 10px;
+    grid-auto-columns: minmax(158px, 170px);
+    margin-right: -14px;
+    padding: 0 14px 12px 0;
   }
 
   .dish-card,
