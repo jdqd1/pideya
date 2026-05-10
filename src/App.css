@@ -728,29 +728,6 @@
   color: var(--ink);
 }
 
-.favorite-button {
-  align-items: start;
-  background: transparent;
-  border: 0;
-  color: #101828;
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  padding: 20px 16px 0 8px;
-}
-
-.favorite-button svg {
-  fill: transparent;
-}
-
-.favorite-button.active {
-  color: var(--blue);
-}
-
-.favorite-button.active svg {
-  fill: currentColor;
-}
-
 .restaurant-app-page {
   background: #ffffff;
   color: #071633;
@@ -1218,6 +1195,40 @@
 
 .restaurant-store-card {
   border-radius: 22px;
+  grid-template-columns: 1fr;
+}
+
+.restaurant-store-card .local-card-main {
+  grid-column: 1 / -1;
+}
+
+.restaurant-store-card .local-delivery-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.restaurant-store-card .local-delivery-row span {
+  background: #f2f7ff;
+  border-color: #d9e8ff;
+  color: #527099;
+  min-width: 0;
+}
+
+.restaurant-store-card .local-delivery-row span:nth-child(2) {
+  background: #f0fbf6;
+  border-color: #d6f1e2;
+  color: #42725a;
+}
+
+.restaurant-store-card .local-delivery-row span:first-child svg,
+.restaurant-store-card .local-delivery-row span:first-child strong {
+  color: var(--blue-dark);
+}
+
+.restaurant-store-card .local-delivery-row span:nth-child(2) svg,
+.restaurant-store-card .local-delivery-row span:nth-child(2) strong {
+  color: var(--green);
 }
 
 .home-products-section {
@@ -1388,9 +1399,9 @@
 
 .rail-product-footer {
   align-items: center;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) auto;
   margin-top: 2px;
 }
 
@@ -1398,6 +1409,10 @@
   color: #071633;
   font-size: 1.08rem;
   line-height: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-add-button,
@@ -1527,7 +1542,6 @@
 }
 
 .dish-card > img {
-  aspect-ratio: 1;
   border-radius: 18px;
   height: 100%;
   max-height: 190px;
@@ -1535,7 +1549,14 @@
   width: 100%;
 }
 
+.dish-card:not(.compact) > img {
+  align-self: stretch;
+  max-height: none;
+  min-height: 100%;
+}
+
 .dish-card.compact > img {
+  aspect-ratio: 1;
   max-height: 150px;
 }
 
@@ -1673,7 +1694,20 @@
 }
 
 .rail-add-button.product-quantity-control {
+  gap: 3px;
   min-height: 42px;
+  min-width: 88px;
+  padding: 4px;
+}
+
+.rail-add-button.product-quantity-control button {
+  flex: 0 0 30px;
+  height: 30px;
+  width: 30px;
+}
+
+.rail-add-button.product-quantity-control span {
+  min-width: 16px;
 }
 
 .home-panel {
@@ -3371,11 +3405,6 @@
     grid-template-columns: 1fr;
   }
 
-  .favorite-button {
-    justify-content: flex-end;
-    padding: 0 8px 8px;
-  }
-
   .local-card-main > img {
     aspect-ratio: 1.45;
     height: auto;
@@ -3750,10 +3779,6 @@
     width: 18px;
   }
 
-  .favorite-button {
-    padding: 12px 4px 0 6px;
-  }
-
   .role-nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3902,6 +3927,10 @@
   .dish-card > img,
   .dish-card.compact > img {
     max-height: 136px;
+  }
+
+  .dish-card:not(.compact) > img {
+    max-height: none;
   }
 }
 
@@ -4128,7 +4157,7 @@
 
   .product-rail-scroll {
     gap: 10px;
-    grid-auto-columns: minmax(138px, 150px);
+    grid-auto-columns: minmax(170px, 184px);
     margin-right: -14px;
     padding-right: 14px;
   }
@@ -4136,8 +4165,8 @@
   .rail-product-card {
     border-radius: 18px;
     gap: 8px;
-    min-height: 204px;
-    padding: 8px;
+    min-height: 214px;
+    padding: 10px;
   }
 
   .rail-product-main img {
@@ -4171,23 +4200,30 @@
   }
 
   .rail-product-footer b {
-    font-size: 0.92rem;
+    font-size: 1rem;
   }
 
-  .rail-add-button.product-add-button,
-  .rail-add-button.product-quantity-control button {
+  .rail-add-button.product-add-button {
     height: 34px;
     width: 34px;
   }
 
+  .rail-add-button.product-quantity-control button {
+    flex-basis: 26px;
+    height: 26px;
+    width: 26px;
+  }
+
   .rail-add-button.product-quantity-control {
-    min-height: 34px;
-    padding: 3px;
+    gap: 2px;
+    min-height: 30px;
+    min-width: 72px;
+    padding: 2px;
   }
 
   .rail-add-button.product-quantity-control span {
-    font-size: 0.78rem;
-    min-width: 18px;
+    font-size: 0.72rem;
+    min-width: 12px;
   }
 
   .rail-see-all-card {
@@ -4225,16 +4261,28 @@
   .dish-card.compact {
     border-radius: 18px;
     gap: 12px;
-    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-columns: 108px minmax(0, 1fr);
     min-height: 120px;
     padding: 10px;
   }
 
-  .dish-card > img,
-  .dish-card.compact > img {
+  .dish-card > img {
     border-radius: 14px;
+    height: 100%;
+    max-height: none;
+    min-height: 100%;
+    width: 108px;
+  }
+
+  .dish-card.compact {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .dish-card.compact > img {
+    aspect-ratio: 1;
     height: 96px;
     max-height: 96px;
+    min-height: 0;
     width: 96px;
   }
 

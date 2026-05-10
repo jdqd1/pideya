@@ -133,7 +133,6 @@ export function ClientPortal({
   const [categoryKey, setCategoryKey] = useState<CategoryKey>('all');
   const [showMoreFoodTypes, setShowMoreFoodTypes] = useState(false);
   const [activeRestaurantStoreId, setActiveRestaurantStoreId] = useState<string | null>(null);
-  const [favoriteStoreIds, setFavoriteStoreIds] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -374,12 +373,6 @@ export function ClientPortal({
     document.getElementById('restaurant-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const toggleFavorite = (storeId: string) => {
-    setFavoriteStoreIds((current) =>
-      current.includes(storeId) ? current.filter((id) => id !== storeId) : [...current, storeId],
-    );
-  };
-
   const submitOrder = () => {
     setCheckoutError('');
     setLastOrderId('');
@@ -560,14 +553,6 @@ export function ClientPortal({
             </span>
           </div>
         </div>
-      </button>
-      <button
-        aria-label={`Favorito ${store.name}`}
-        className={`favorite-button ${favoriteStoreIds.includes(store.id) ? 'active' : ''}`}
-        onClick={() => toggleFavorite(store.id)}
-        type="button"
-      >
-        <Heart size={27} aria-hidden="true" fill="currentColor" />
       </button>
     </article>
   );
