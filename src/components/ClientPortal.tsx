@@ -150,6 +150,10 @@ export function ClientPortal({
     : null;
   const selectedStore = activeRestaurantStore ?? stores.find((store) => store.id === selectedStoreId) ?? stores[0];
   const restaurantStores = useMemo(() => stores.filter(isFoodStore), [stores]);
+  const storeById = useMemo(
+    () => new Map(stores.map((store) => [store.id, store])),
+    [stores],
+  );
   const restaurantStoreIds = useMemo(
     () => new Set(restaurantStores.map((store) => store.id)),
     [restaurantStores],
@@ -232,6 +236,51 @@ export function ClientPortal({
     exploreProducts[0] ??
     products[0];
   const promotedStore = stores.find((store) => store.id === promotedProduct?.storeId) ?? selectedStore;
+  const selectedFoodLabel =
+    foodFilters.find((filter) => filter.value === foodType)?.label ?? foodType;
+
+  const cheapestProducts = useMemo(
+    () =>
+      [...exploreProducts].sort((left, right) => {
+        const leftStore = storeById.get(left.storeId);
+        const rightStore = storeById.get(right.storeId);
+
+        return (
+          left.price - right.price ||
+          (leftStore?.distanceKm ?? Number.MAX_SAFE_INTEGER) -
+            (rightStore?.distanceKm ?? Number.MAX_SAFE_INTEGER)
+        );
+      }),
+    [exploreProducts, storeById],
+  );
+
+  const nearestProducts = useMemo(
+    () =>
+      [...exploreProducts].sort((left, right) => {
+        const leftStore = storeById.get(left.storeId);
+        const rightStore = storeById.get(right.storeId);
+
+        return (
+          (leftStore?.distanceKm ?? Number.MAX_SAFE_INTEGER) -
+            (rightStore?.distanceKm ?? Number.MAX_SAFE_INTEGER) ||
+          left.price - right.price
+        );
+      }),
+    [exploreProducts, storeById],
+  );
+
+  const productRails = [
+    {
+      id: 'cheap',
+      title: 'Mas economicos',
+      products: cheapestProducts,
+    },
+    {
+      id: 'near',
+      title: 'Mas cerca',
+      products: nearestProducts,
+    },
+  ];
 
   const homePreviewProducts = useMemo(() => {
     const preferredIds = ['prd-burger-combo', 'prd-sushi', 'prd-arepa-reina', 'prd-cheesecake'];
@@ -280,6 +329,8 @@ export function ClientPortal({
   const deliveryFee = cartProducts.length ? cartStore?.deliveryFee ?? 0 : 0;
   const total = subtotal + deliveryFee;
   const cartItemsCount = cartProducts.reduce((sum, item) => sum + item.quantity, 0);
+  const getProductCartQuantity = (productId: string) =>
+    cart.find((item) => item.productId === productId)?.quantity ?? 0;
 
   const exploreTitle =
     categoryKey === 'drinks'
@@ -316,8 +367,11 @@ export function ClientPortal({
 
   const addProductToCart = (product: Product) => {
     onAddToCart(product, selectedOptions[product.id] ?? product.options[0]);
-    setCartOpen(true);
     setLastOrderId('');
+  };
+
+  const scrollToRestaurantResults = () => {
+    document.getElementById('restaurant-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const toggleFavorite = (storeId: string) => {
@@ -363,10 +417,64 @@ export function ClientPortal({
     }
   };
 
+  const renderProductQuantityControl = (product: Product, disabled: boolean, className = '') => {
+    const quantity = getProductCartQuantity(product.id);
+
+    if (!quantity) {
+      return (
+        <button
+          aria-label={`Agregar ${product.name}`}
+          className={`product-add-button ${className}`.trim()}
+          disabled={disabled}
+          onClick={() => addProductToCart(product)}
+          type="button"
+        >
+          <Plus size={25} aria-hidden="true" />
+        </button>
+      );
+    }
+
+    return (
+      <div className={`product-quantity-control ${className}`.trim()}>
+        <button
+          className={quantity === 1 ? 'danger-stepper-button' : ''}
+          aria-label={quantity === 1 ? `Eliminar ${product.name}` : `Restar ${product.name}`}
+          onClick={() =>
+            quantity === 1
+              ? onRemoveCartItem(product.id)
+              : onUpdateCartItem(product.id, quantity - 1)
+          }
+          type="button"
+        >
+          {quantity === 1 ? (
+            <Trash2 size={17} aria-hidden="true" />
+          ) : (
+            <Minus size={18} aria-hidden="true" />
+          )}
+        </button>
+        <span>{quantity}</span>
+        <button
+          aria-label={`Sumar ${product.name}`}
+          disabled={disabled}
+          onClick={() => addProductToCart(product)}
+          type="button"
+        >
+          <Plus size={18} aria-hidden="true" />
+        </button>
+      </div>
+    );
+  };
+
   const renderDishCard = (product: Product, compact = false) => {
     const productStore = stores.find((store) => store.id === product.storeId);
     const isUnavailable = !product.available || productStore?.open === false;
     const badgeText = product.category === 'Combos' ? 'Mas vendido' : product.category;
+    const renderBadge = () => (
+      <span className="dish-badge">
+        <Star size={14} aria-hidden="true" fill="currentColor" />
+        {isUnavailable ? 'No disponible' : badgeText}
+      </span>
+    );
 
     return (
       <article
@@ -376,50 +484,45 @@ export function ClientPortal({
         <SafeImage src={product.imageUrl} alt="" />
         <div className="dish-card-body">
           <div>
-            <div className="dish-title-row">
+            <div className={`dish-title-row ${compact ? 'compact-title' : ''}`.trim()}>
               <strong>{product.name}</strong>
-              <button aria-label={`Guardar ${product.name}`} className="dish-favorite" type="button">
-                <Heart size={22} aria-hidden="true" />
-              </button>
+              {compact ? (
+                renderBadge()
+              ) : (
+                <button aria-label={`Guardar ${product.name}`} className="dish-favorite" type="button">
+                  <Heart size={22} aria-hidden="true" />
+                </button>
+              )}
             </div>
             <p>{product.description}</p>
           </div>
-          <div className="dish-meta-row">
-            <span className="dish-badge">
-              <Star size={14} aria-hidden="true" fill="currentColor" />
-              {isUnavailable ? 'No disponible' : badgeText}
-            </span>
-            {product.options.length > 1 ? (
-              <label className="dish-option">
-                <span className="sr-only">Opcion para {product.name}</span>
-                <select
-                  disabled={isUnavailable}
-                  onChange={(event) =>
-                    setSelectedOptions((current) => ({
-                      ...current,
-                      [product.id]: event.target.value,
-                    }))
-                  }
-                  value={selectedOptions[product.id] ?? product.options[0] ?? ''}
-                >
-                  {product.options.map((option) => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-          </div>
+          {!compact ? (
+            <div className="dish-meta-row">
+              {renderBadge()}
+              {product.options.length > 1 ? (
+                <label className="dish-option">
+                  <span className="sr-only">Opcion para {product.name}</span>
+                  <select
+                    disabled={isUnavailable}
+                    onChange={(event) =>
+                      setSelectedOptions((current) => ({
+                        ...current,
+                        [product.id]: event.target.value,
+                      }))
+                    }
+                    value={selectedOptions[product.id] ?? product.options[0] ?? ''}
+                  >
+                    {product.options.map((option) => (
+                      <option key={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+            </div>
+          ) : null}
           <div className="dish-footer">
             <span>{formatCurrency(product.price)}</span>
-            <button
-              aria-label={`Agregar ${product.name}`}
-              className="dish-add-button"
-              disabled={isUnavailable}
-              onClick={() => addProductToCart(product)}
-              type="button"
-            >
-              <Plus size={25} aria-hidden="true" />
-            </button>
+            {renderProductQuantityControl(product, isUnavailable, 'dish-add-button')}
           </div>
         </div>
       </article>
@@ -467,6 +570,50 @@ export function ClientPortal({
         <Heart size={27} aria-hidden="true" fill="currentColor" />
       </button>
     </article>
+  );
+
+  const renderRailProductCard = (product: Product, rank: number) => {
+    const productStore = storeById.get(product.storeId);
+    const isUnavailable = !product.available || productStore?.open === false;
+
+    return (
+      <article className={`rail-product-card ${isUnavailable ? 'unavailable' : ''}`.trim()} key={product.id}>
+        <button
+          aria-label={`Ver ${product.name} en ${productStore?.name ?? 'local cercano'}`}
+          className="rail-product-main"
+          onClick={() => productStore && selectStore(productStore.id)}
+          type="button"
+        >
+          <SafeImage src={product.imageUrl} alt="" />
+          <div className="rail-product-image-meta">
+            <span className="rail-product-rank">#{rank + 1}</span>
+            <span className="rail-product-rating">
+              <Star size={13} aria-hidden="true" fill="currentColor" />
+              {productStore?.rating ?? '4.8'}
+            </span>
+          </div>
+        </button>
+        <div className="rail-product-body">
+          <strong>{product.name}</strong>
+          <span>{productStore?.name ?? 'Local cercano'}</span>
+          <div className="rail-product-footer">
+            <b>{formatCurrency(product.price)}</b>
+            {renderProductQuantityControl(product, isUnavailable, 'rail-add-button')}
+          </div>
+        </div>
+      </article>
+    );
+  };
+
+  const renderRailSeeAllCard = (railTitle: string) => (
+    <button className="rail-see-all-card" key={`${railTitle}-see-all`} onClick={scrollToRestaurantResults} type="button">
+      <span>
+        <StoreIcon size={24} aria-hidden="true" />
+      </span>
+      <strong>Ver todos</strong>
+      <small>{railTitle}</small>
+      <ChevronRight size={24} aria-hidden="true" />
+    </button>
   );
 
   return (
@@ -553,10 +700,6 @@ export function ClientPortal({
                   value={query}
                 />
               </label>
-              <button className="restaurant-cart-button" onClick={() => setCartOpen(true)} type="button">
-                <ShoppingCart size={30} aria-hidden="true" />
-                {cartItemsCount ? <span>{cartItemsCount}</span> : null}
-              </button>
             </div>
 
             <nav className="food-type-scroll" aria-label="Tipos de comida">
@@ -632,14 +775,11 @@ export function ClientPortal({
                     <strong>{formatCurrency(promotedProduct.price)}</strong>
                     <s>{formatCurrency(Number((promotedProduct.price * 1.35).toFixed(2)))}</s>
                   </div>
-                  <button
-                    disabled={!promotedProduct.available || !promotedStore.open}
-                    onClick={() => addProductToCart(promotedProduct)}
-                    type="button"
-                  >
-                    <span>Agregar</span>
-                    <Plus size={25} aria-hidden="true" />
-                  </button>
+                  {renderProductQuantityControl(
+                    promotedProduct,
+                    !promotedProduct.available || !promotedStore.open,
+                    'featured-quantity-control',
+                  )}
                 </div>
                 <SafeImage src={promotedProduct.imageUrl} alt="" />
                 <b>25%<small>OFF</small></b>
@@ -647,47 +787,73 @@ export function ClientPortal({
             ) : null}
 
             <section className="restaurant-content-section">
-              <div className="restaurant-section-heading">
-                <div>
-                  <h2>{activeRestaurantStore ? `Productos de ${activeRestaurantStore.name}` : `${exploreTitle} cerca de vos`}</h2>
-                  <span>
-                    {activeRestaurantStore
-                      ? `${menuProducts.length} productos disponibles`
-                      : `${visibleStores.length} locales disponibles`}
-                  </span>
-                </div>
-                {!activeRestaurantStore ? (
-                  <button onClick={() => setFoodType('Todas')} type="button">
-                    Ver todos
-                    <ChevronRight size={20} aria-hidden="true" />
-                  </button>
-                ) : null}
-              </div>
-
               {activeRestaurantStore ? (
-                Object.entries(groupedProducts).length ? (
-                  <div className="menu-product-list">
-                    {Object.entries(groupedProducts).map(([group, groupProducts]) => (
-                      <section className="restaurant-product-group" key={group}>
-                        <div className="menu-section-heading">
-                          <h3>{group}</h3>
-                          <span>{groupProducts.length} productos</span>
-                        </div>
-                        <div className="dish-list">
-                          {groupProducts.map((product) => renderDishCard(product))}
-                        </div>
-                      </section>
-                    ))}
+                <>
+                  <div className="restaurant-section-heading">
+                    <div>
+                      <h2>{`Productos de ${activeRestaurantStore.name}`}</h2>
+                      <span>{`${menuProducts.length} productos disponibles`}</span>
+                    </div>
                   </div>
-                ) : (
-                  <EmptyState body="Prueba otro tipo de comida o selecciona otro local." title="Sin productos" />
-                )
-              ) : visibleStores.length ? (
-                <div className="local-list restaurant-local-list">
-                  {visibleStores.map((store, index) => renderStoreCard(store, index))}
-                </div>
+
+                  {Object.entries(groupedProducts).length ? (
+                    <div className="menu-product-list">
+                      {Object.entries(groupedProducts).map(([group, groupProducts]) => (
+                        <section className="restaurant-product-group" key={group}>
+                          <div className="menu-section-heading">
+                            <h3>{group}</h3>
+                            <span>{groupProducts.length} productos</span>
+                          </div>
+                          <div className="dish-list">
+                            {groupProducts.map((product) => renderDishCard(product))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState body="Prueba otro tipo de comida o selecciona otro local." title="Sin productos" />
+                  )}
+                </>
               ) : (
-                <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin locales" />
+                <>
+                  {exploreProducts.length ? (
+                    <div className="product-rail-stack">
+                      {productRails.map((rail) => (
+                        <section className="product-rail-section" key={`${foodType}-${rail.id}`}>
+                          <div className="product-rail-heading">
+                            <h3>{rail.title}</h3>
+                            <small>{rail.products.length}</small>
+                          </div>
+                          <div className="product-rail-scroll" key={`${foodType}-${rail.id}-scroll`}>
+                            {rail.products.map((product, index) => renderRailProductCard(product, index))}
+                            {rail.products.length > 2 ? renderRailSeeAllCard(rail.title) : null}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin productos" />
+                  )}
+
+                  <div id="restaurant-results" className="restaurant-section-heading restaurant-results-heading">
+                    <div>
+                      <h2>
+                        {foodType === 'Todas'
+                          ? `${exploreTitle} cerca de vos`
+                          : `Restaurantes que venden ${selectedFoodLabel}`}
+                      </h2>
+                      <span>{`${visibleStores.length} locales disponibles`}</span>
+                    </div>
+                  </div>
+
+                  {visibleStores.length ? (
+                    <div className="local-list restaurant-local-list">
+                      {visibleStores.map((store, index) => renderStoreCard(store, index))}
+                    </div>
+                  ) : (
+                    <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin locales" />
+                  )}
+                </>
               )}
             </section>
           </section>
@@ -734,28 +900,25 @@ export function ClientPortal({
                     <article className="cart-line" key={item.productId}>
                       <SafeImage src={item.product.imageUrl} alt="" />
                       <div className="cart-line-info">
-                        <div>
-                          <strong>{item.product.name}</strong>
-                          <span>{item.product.description}</span>
-                          {item.option ? <small>{item.option}</small> : null}
-                        </div>
+                        <strong>{item.product.name}</strong>
                         <b>{formatCurrency(item.product.price)}</b>
                       </div>
-                      <button
-                        className="cart-remove-button"
-                        aria-label={`Eliminar ${item.product.name}`}
-                        onClick={() => onRemoveCartItem(item.productId)}
-                        type="button"
-                      >
-                        <Trash2 size={19} aria-hidden="true" />
-                      </button>
                       <div className="quantity-stepper">
                         <button
-                          aria-label={`Restar ${item.product.name}`}
-                          onClick={() => onUpdateCartItem(item.productId, item.quantity - 1)}
+                          className={item.quantity === 1 ? 'danger-stepper-button' : ''}
+                          aria-label={item.quantity === 1 ? `Eliminar ${item.product.name}` : `Restar ${item.product.name}`}
+                          onClick={() =>
+                            item.quantity === 1
+                              ? onRemoveCartItem(item.productId)
+                              : onUpdateCartItem(item.productId, item.quantity - 1)
+                          }
                           type="button"
                         >
-                          <Minus size={18} aria-hidden="true" />
+                          {item.quantity === 1 ? (
+                            <Trash2 size={17} aria-hidden="true" />
+                          ) : (
+                            <Minus size={18} aria-hidden="true" />
+                          )}
                         </button>
                         <span>{item.quantity}</span>
                         <button
