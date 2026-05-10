@@ -1,15 +1,21 @@
 import { useMemo, useState } from 'react';
 import {
+  ArrowLeft,
+  BadgePercent,
+  Beef,
   Bike,
   CheckCircle2,
   ChevronRight,
   ChevronUp,
   Clock,
-  Filter,
-  Gift,
+  Coffee,
+  CupSoda,
   GlassWater,
+  Grid2x2,
   Heart,
+  IceCreamBowl,
   LogIn,
+  LockKeyhole,
   MapPin,
   Minus,
   Pill,
@@ -17,19 +23,22 @@ import {
   Search,
   ShoppingBag,
   ShoppingCart,
+  Soup,
   Star,
+  Store as StoreIcon,
   Trash2,
   UserRound,
   Utensils,
   WalletCards,
-  X,
+  type LucideIcon,
 } from 'lucide-react';
 import pideyaLogo from '../assets/pideya-logo.png';
-import { ActionButton, EmptyState, Panel, SafeImage, StatusPill } from './Shared';
+import { ActionButton, EmptyState, SafeImage } from './Shared';
 import type { AppUser, CartItem, Order, PaymentMethod, Product, Storefront } from '../types';
-import { formatCurrency, formatTime } from '../utils/format';
+import { formatCurrency } from '../utils/format';
 
 type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops';
+type ClientView = 'home' | 'restaurants';
 
 interface ClientPortalProps {
   stores: Storefront[];
@@ -54,12 +63,54 @@ interface ClientPortalProps {
   }) => string | undefined;
 }
 
+interface FoodFilter {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+  tone: string;
+}
+
 const categoryCards = [
   { key: 'restaurants', label: 'Restaurantes', icon: Utensils },
   { key: 'drinks', label: 'Bebidas', icon: GlassWater },
   { key: 'pharmacy', label: 'Farmacias', icon: Pill },
   { key: 'shops', label: 'Tiendas', icon: ShoppingBag },
 ] as const;
+
+const primaryFoodFilters: FoodFilter[] = [
+  { value: 'Todas', label: 'Todos', icon: Grid2x2, tone: 'blue' },
+  { value: 'Burgers', label: 'Hamburguesas', icon: Beef, tone: 'amber' },
+  { value: 'Arepas', label: 'Arepas', icon: Utensils, tone: 'green' },
+  { value: 'Sushi', label: 'Asiatica', icon: Soup, tone: 'coral' },
+  { value: 'Bebidas', label: 'Bebidas', icon: CupSoda, tone: 'mint' },
+  { value: 'Postres', label: 'Postres', icon: IceCreamBowl, tone: 'violet' },
+];
+
+const nonRestaurantTypes = ['Farmacia', 'Minimarket'];
+
+const isFoodStore = (store: Storefront) => !nonRestaurantTypes.includes(store.type);
+
+const matchesFoodFilter = (product: Product, foodType: string) =>
+  foodType === 'Todas' || product.category === foodType;
+
+const getFoodFilterIcon = (category: string) => {
+  if (category === 'Cafe') {
+    return Coffee;
+  }
+
+  if (category === 'Combos') {
+    return BadgePercent;
+  }
+
+  if (category === 'Bebidas') {
+    return CupSoda;
+  }
+
+  return Utensils;
+};
+
+const getFoodFilterTone = (index: number) =>
+  ['blue', 'amber', 'coral', 'mint', 'violet', 'green'][index % 6];
 
 export function ClientPortal({
   stores,
@@ -76,14 +127,12 @@ export function ClientPortal({
   onOpenRegister,
   onCreateOrder,
 }: ClientPortalProps) {
+  const [clientView, setClientView] = useState<ClientView>('home');
   const [query, setQuery] = useState('');
-  const [storeType, setStoreType] = useState('Todas');
   const [foodType, setFoodType] = useState('Todas');
-  const [sortMode, setSortMode] = useState('Cercania');
   const [categoryKey, setCategoryKey] = useState<CategoryKey>('all');
-  const [freeDeliveryOnly, setFreeDeliveryOnly] = useState(false);
-  const [activePromo, setActivePromo] = useState(0);
-  const [showAllPromos, setShowAllPromos] = useState(false);
+  const [showMoreFoodTypes, setShowMoreFoodTypes] = useState(false);
+  const [activeRestaurantStoreId, setActiveRestaurantStoreId] = useState<string | null>(null);
   const [favoriteStoreIds, setFavoriteStoreIds] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [cartOpen, setCartOpen] = useState(false);
@@ -96,111 +145,115 @@ export function ClientPortal({
   const [checkoutError, setCheckoutError] = useState('');
   const [lastOrderId, setLastOrderId] = useState('');
 
-  const selectedStore = stores.find((store) => store.id === selectedStoreId) ?? stores[0];
-  const heroStore = stores.find((store) => store.type === 'Hamburguesas') ?? selectedStore;
-
-  const storeTypes = useMemo(
-    () => ['Todas', ...Array.from(new Set(stores.map((store) => store.type)))],
-    [stores],
+  const activeRestaurantStore = activeRestaurantStoreId
+    ? stores.find((store) => store.id === activeRestaurantStoreId) ?? null
+    : null;
+  const selectedStore = activeRestaurantStore ?? stores.find((store) => store.id === selectedStoreId) ?? stores[0];
+  const restaurantStores = useMemo(() => stores.filter(isFoodStore), [stores]);
+  const restaurantStoreIds = useMemo(
+    () => new Set(restaurantStores.map((store) => store.id)),
+    [restaurantStores],
   );
 
-  const foodTypes = useMemo(
-    () => ['Todas', ...Array.from(new Set(products.map((product) => product.category)))],
-    [products],
-  );
+  const extraFoodFilters = useMemo(() => {
+    const primaryValues = new Set(primaryFoodFilters.map((filter) => filter.value));
+    const categories = Array.from(
+      new Set(
+        products
+          .filter((product) => restaurantStoreIds.has(product.storeId))
+          .map((product) => product.category),
+      ),
+    ).filter((category) => !primaryValues.has(category));
 
-  const promos = useMemo(
-    () => [
-      {
-        title: '20% OFF',
-        text: 'en tu primer pedido',
-        code: 'Codigo: PIDEYA20',
-        className: 'promo-blue',
-        imageUrl: heroStore.imageUrl,
-      },
-      {
-        title: 'Envio gratis',
-        text: 'en locales seleccionados',
-        code: 'Desde hoy',
-        className: 'promo-cyan',
-        imageUrl: stores.find((store) => store.type === 'Farmacia')?.imageUrl ?? selectedStore.imageUrl,
-      },
-      {
-        title: '15% OFF',
-        text: 'en productos de farmacia',
-        code: 'Salud y belleza',
-        className: 'promo-indigo',
-        imageUrl: stores.find((store) => store.type === 'Farmacia')?.imageUrl ?? selectedStore.imageUrl,
-      },
-      {
-        title: 'Combos',
-        text: 'para almuerzos rapidos',
-        code: 'Locales cerca de vos',
-        className: 'promo-violet',
-        imageUrl: stores.find((store) => store.type === 'Asiatica')?.imageUrl ?? selectedStore.imageUrl,
-      },
-    ],
-    [heroStore.imageUrl, selectedStore.imageUrl, stores],
-  );
+    return categories.slice(0, 6).map((category, index) => ({
+      value: category,
+      label: category === 'Acompanantes' ? 'Snacks' : category,
+      icon: getFoodFilterIcon(category),
+      tone: getFoodFilterTone(index + primaryFoodFilters.length),
+    }));
+  }, [products, restaurantStoreIds]);
+
+  const foodFilters = showMoreFoodTypes
+    ? [...primaryFoodFilters, ...extraFoodFilters]
+    : primaryFoodFilters;
 
   const visibleStores = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    const filteredStores = stores
-      .filter((store) => storeType === 'Todas' || store.type === storeType)
-      .filter((store) => {
-        const storeProducts = products.filter((product) => product.storeId === store.id);
+    const filteredStores = stores.filter((store) => {
+      const storeProducts = products.filter((product) => product.storeId === store.id);
 
-        if (categoryKey === 'restaurants' && ['Farmacia', 'Minimarket'].includes(store.type)) {
-          return false;
-        }
-
-        if (categoryKey === 'drinks' && !storeProducts.some((product) => product.category === 'Bebidas')) {
-          return false;
-        }
-
-        if (categoryKey === 'pharmacy' && store.type !== 'Farmacia') {
-          return false;
-        }
-
-        if (categoryKey === 'shops' && store.type !== 'Minimarket') {
-          return false;
-        }
-
-        if (foodType !== 'Todas' && !storeProducts.some((product) => product.category === foodType)) {
-          return false;
-        }
-
-        if (freeDeliveryOnly && store.deliveryFee > 1.6) {
-          return false;
-        }
-
-        if (!normalizedQuery) {
-          return true;
-        }
-
-        return [store.name, store.type, store.tags.join(' '), storeProducts.map((product) => product.name).join(' ')]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedQuery);
-      });
-
-    return filteredStores.sort((left, right) => {
-      if (sortMode === 'Mejor valoracion') {
-        return right.rating - left.rating;
+      if (categoryKey === 'restaurants' && !isFoodStore(store)) {
+        return false;
       }
 
-      if (sortMode === 'Entrega rapida') {
-        return Number(left.deliveryMinutes.split('-')[0]) - Number(right.deliveryMinutes.split('-')[0]);
+      if (categoryKey === 'drinks' && !storeProducts.some((product) => product.category === 'Bebidas')) {
+        return false;
       }
 
-      return Number(right.open) - Number(left.open) || left.distanceKm - right.distanceKm;
+      if (categoryKey === 'pharmacy' && store.type !== 'Farmacia') {
+        return false;
+      }
+
+      if (categoryKey === 'shops' && store.type !== 'Minimarket') {
+        return false;
+      }
+
+      if (foodType !== 'Todas' && !storeProducts.some((product) => matchesFoodFilter(product, foodType))) {
+        return false;
+      }
+
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      return [store.name, store.type, store.tags.join(' '), storeProducts.map((product) => product.name).join(' ')]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery);
     });
-  }, [categoryKey, foodType, freeDeliveryOnly, products, query, sortMode, storeType, stores]);
 
-  const menuProducts = products
-    .filter((product) => product.storeId === selectedStore.id)
-    .filter((product) => foodType === 'Todas' || product.category === foodType);
+    return filteredStores.sort(
+      (left, right) => Number(right.open) - Number(left.open) || left.distanceKm - right.distanceKm,
+    );
+  }, [categoryKey, foodType, products, query, stores]);
+
+  const exploreProducts = useMemo(() => {
+    const storeIds = new Set(visibleStores.map((store) => store.id));
+
+    return products.filter(
+      (product) => storeIds.has(product.storeId) && matchesFoodFilter(product, foodType),
+    );
+  }, [foodType, products, visibleStores]);
+
+  const promotedProduct =
+    exploreProducts.find((product) => product.category === 'Combos') ??
+    exploreProducts.find((product) => product.category === 'Burgers') ??
+    exploreProducts[0] ??
+    products[0];
+  const promotedStore = stores.find((store) => store.id === promotedProduct?.storeId) ?? selectedStore;
+
+  const homePreviewProducts = useMemo(() => {
+    const preferredIds = ['prd-burger-combo', 'prd-sushi', 'prd-arepa-reina', 'prd-cheesecake'];
+    const preferredProducts = preferredIds
+      .map((id) => products.find((product) => product.id === id))
+      .filter(Boolean) as Product[];
+    const fallbackProducts = products.filter((product) => restaurantStoreIds.has(product.storeId));
+
+    return [...preferredProducts, ...fallbackProducts]
+      .filter((product, index, list) => list.findIndex((item) => item.id === product.id) === index)
+      .slice(0, 4);
+  }, [products, restaurantStoreIds]);
+
+  const menuProducts = useMemo(() => {
+    if (!activeRestaurantStore) {
+      return [];
+    }
+
+    return products
+      .filter((product) => product.storeId === activeRestaurantStore.id)
+      .filter((product) => matchesFoodFilter(product, foodType));
+  }, [activeRestaurantStore, foodType, products]);
 
   const groupedProducts = useMemo(() => {
     return menuProducts.reduce<Record<string, Product[]>>((groups, product) => {
@@ -227,18 +280,37 @@ export function ClientPortal({
   const deliveryFee = cartProducts.length ? cartStore?.deliveryFee ?? 0 : 0;
   const total = subtotal + deliveryFee;
   const cartItemsCount = cartProducts.reduce((sum, item) => sum + item.quantity, 0);
-  const clientHistory = orders.filter((order) => order.customerRegistered).slice(0, 3);
+
+  const exploreTitle =
+    categoryKey === 'drinks'
+      ? 'Bebidas'
+      : categoryKey === 'pharmacy'
+        ? 'Farmacias'
+        : categoryKey === 'shops'
+          ? 'Tiendas'
+          : 'Restaurantes';
 
   const selectCategory = (key: CategoryKey) => {
+    setClientView('restaurants');
     setCategoryKey(key);
-    setStoreType('Todas');
+    setActiveRestaurantStoreId(null);
     setFoodType(key === 'drinks' ? 'Bebidas' : 'Todas');
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
+  };
+
+  const returnHome = () => {
+    setClientView('home');
+    setCategoryKey('all');
+    setFoodType('Todas');
+    setActiveRestaurantStoreId(null);
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
   };
 
   const selectStore = (storeId: string) => {
+    setActiveRestaurantStoreId(storeId);
     onSelectStore(storeId);
     window.setTimeout(() => {
-      document.getElementById('selected-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('restaurant-focus')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
   };
 
@@ -291,286 +363,335 @@ export function ClientPortal({
     }
   };
 
+  const renderDishCard = (product: Product, compact = false) => {
+    const productStore = stores.find((store) => store.id === product.storeId);
+    const isUnavailable = !product.available || productStore?.open === false;
+    const badgeText = product.category === 'Combos' ? 'Mas vendido' : product.category;
+
+    return (
+      <article
+        className={`dish-card ${compact ? 'compact' : ''} ${isUnavailable ? 'unavailable' : ''}`.trim()}
+        key={product.id}
+      >
+        <SafeImage src={product.imageUrl} alt="" />
+        <div className="dish-card-body">
+          <div>
+            <div className="dish-title-row">
+              <strong>{product.name}</strong>
+              <button aria-label={`Guardar ${product.name}`} className="dish-favorite" type="button">
+                <Heart size={22} aria-hidden="true" />
+              </button>
+            </div>
+            <p>{product.description}</p>
+          </div>
+          <div className="dish-meta-row">
+            <span className="dish-badge">
+              <Star size={14} aria-hidden="true" fill="currentColor" />
+              {isUnavailable ? 'No disponible' : badgeText}
+            </span>
+            {product.options.length > 1 ? (
+              <label className="dish-option">
+                <span className="sr-only">Opcion para {product.name}</span>
+                <select
+                  disabled={isUnavailable}
+                  onChange={(event) =>
+                    setSelectedOptions((current) => ({
+                      ...current,
+                      [product.id]: event.target.value,
+                    }))
+                  }
+                  value={selectedOptions[product.id] ?? product.options[0] ?? ''}
+                >
+                  {product.options.map((option) => (
+                    <option key={option}>{option}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+          </div>
+          <div className="dish-footer">
+            <span>{formatCurrency(product.price)}</span>
+            <button
+              aria-label={`Agregar ${product.name}`}
+              className="dish-add-button"
+              disabled={isUnavailable}
+              onClick={() => addProductToCart(product)}
+              type="button"
+            >
+              <Plus size={25} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
+  const renderStoreCard = (store: Storefront, index: number) => (
+    <article className="local-card restaurant-store-card" key={store.id}>
+      <button className="local-card-main" onClick={() => selectStore(store.id)} type="button">
+        <SafeImage src={store.imageUrl} alt="" />
+        <div className="local-info">
+          <div className="local-title-row">
+            <h3>{store.name}</h3>
+            {index === 0 ? <span>Destacado</span> : null}
+          </div>
+          <p>{store.type} | {store.tags.slice(0, 2).join(' | ')}</p>
+          <div className="local-meta">
+            <span>
+              <Star size={17} aria-hidden="true" fill="currentColor" /> {store.rating}
+            </span>
+            <span>
+              <MapPin size={17} aria-hidden="true" /> {store.distanceKm} km
+            </span>
+          </div>
+          <div className="local-delivery-row">
+            <span>
+              <Clock size={21} aria-hidden="true" />
+              <strong>{store.deliveryMinutes}</strong>
+              Entrega estimada
+            </span>
+            <span>
+              <Bike size={21} aria-hidden="true" />
+              <strong>{formatCurrency(store.deliveryFee)}</strong>
+              Envio
+            </span>
+          </div>
+        </div>
+      </button>
+      <button
+        aria-label={`Favorito ${store.name}`}
+        className={`favorite-button ${favoriteStoreIds.includes(store.id) ? 'active' : ''}`}
+        onClick={() => toggleFavorite(store.id)}
+        type="button"
+      >
+        <Heart size={27} aria-hidden="true" fill="currentColor" />
+      </button>
+    </article>
+  );
+
   return (
     <>
       <div className="mobile-home-frame">
-        <section className="reference-hero">
-          <div className="reference-hero-top">
-            <div className="hero-brand">
-              <img src={pideyaLogo} alt="PideYa" />
-              <strong>Pide<span>Ya</span></strong>
-            </div>
-            <div className="hero-auth-actions">
-              <button className="hero-auth ghost" onClick={onOpenLogin} type="button">
-                <UserRound size={20} aria-hidden="true" />
-                <span>Iniciar sesion</span>
-              </button>
-              <button className="hero-auth primary" onClick={onOpenRegister} type="button">
-                <Plus size={20} aria-hidden="true" />
-                <span>Registrarse</span>
-              </button>
-            </div>
-          </div>
-          <div className="hero-content">
-            <div>
-              <h1>Todo lo que necesitas, cuando lo necesitas.</h1>
-              <p>Pedidos rapidos en tu zona con tiendas, restaurantes y delivery cerca.</p>
-            </div>
-            <div className="hero-food-stage">
-              <SafeImage src={heroStore.imageUrl} alt="" />
-              <span>Entrega estimada {heroStore.deliveryMinutes}</span>
-            </div>
-          </div>
-        </section>
-
-        <label className="reference-search">
-          <Search size={34} aria-hidden="true" />
-          <input
-            aria-label="Buscar tiendas o productos"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Busca restaurantes o productos..."
-            value={query}
-          />
-        </label>
-
-        <section className="reference-categories" aria-label="Categorias principales">
-          {categoryCards.map(({ key, label, icon: Icon }) => (
-            <button
-              className={categoryKey === key ? 'active' : ''}
-              key={key}
-              onClick={() => selectCategory(key)}
-              type="button"
-            >
-              <span className={`category-icon category-${key}`}>
-                <Icon size={42} aria-hidden="true" strokeWidth={2.1} />
-              </span>
-              <strong>{label}</strong>
-            </button>
-          ))}
-        </section>
-
-        <section className="reference-section">
-          <div className="reference-section-heading">
-            <h2>Promociones y descuentos</h2>
-            <button onClick={() => setShowAllPromos((current) => !current)} type="button">
-              {showAllPromos ? 'Ver menos' : 'Ver todas'}
-              <ChevronRight size={18} aria-hidden="true" />
-            </button>
-          </div>
-          <div className={`promo-row ${showAllPromos ? 'expanded' : ''}`}>
-            {promos.map((promo, index) => (
-              <button
-                className={`promo-card ${promo.className} ${activePromo === index ? 'active' : ''}`}
-                key={promo.title}
-                onClick={() => setActivePromo(index)}
-                type="button"
-              >
-                <div>
-                  <strong>{promo.title}</strong>
-                  <span>{promo.text}</span>
-                  <small>{promo.code}</small>
+        {clientView === 'home' ? (
+          <>
+            <section className="reference-hero">
+              <div className="reference-hero-top">
+                <div className="hero-brand">
+                  <img src={pideyaLogo} alt="PideYa" />
+                  <strong>Pide<span>Ya</span></strong>
                 </div>
-                <SafeImage src={promo.imageUrl} alt="" />
-              </button>
-            ))}
-          </div>
-          <div className="promo-dots" aria-label="Seleccionar promocion">
-            {promos.map((promo, index) => (
-              <button
-                aria-label={promo.title}
-                className={activePromo === index ? 'active' : ''}
-                key={promo.title}
-                onClick={() => setActivePromo(index)}
-                type="button"
+                <div className="hero-auth-actions">
+                  <button className="hero-auth ghost" onClick={onOpenLogin} type="button">
+                    <UserRound size={20} aria-hidden="true" />
+                    <span>Iniciar sesion</span>
+                  </button>
+                  <button className="hero-auth primary" onClick={onOpenRegister} type="button">
+                    <Plus size={20} aria-hidden="true" />
+                    <span>Registrarse</span>
+                  </button>
+                </div>
+              </div>
+              <div className="hero-content">
+                <div>
+                  <h1>Todo lo que necesitas, cuando lo necesitas.</h1>
+                  <p>Pedidos rapidos en tu zona con tiendas, restaurantes y delivery cerca.</p>
+                </div>
+              </div>
+            </section>
+
+            <label className="reference-search">
+              <Search size={34} aria-hidden="true" />
+              <input
+                aria-label="Buscar tiendas o productos"
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Busca restaurantes o productos..."
+                value={query}
               />
-            ))}
-          </div>
-        </section>
+            </label>
 
-        <section className="home-filter-chips" aria-label="Filtros rapidos">
-          <button
-            className={sortMode === 'Cercania' ? 'active' : ''}
-            onClick={() => setSortMode('Cercania')}
-            type="button"
-          >
-            <MapPin size={25} aria-hidden="true" />
-            <span>Mas cercanos</span>
-          </button>
-          <button
-            className={freeDeliveryOnly ? 'active' : ''}
-            onClick={() => setFreeDeliveryOnly((current) => !current)}
-            type="button"
-          >
-            <Bike size={25} aria-hidden="true" />
-            <span>Envio economico</span>
-          </button>
-          <button
-            className={sortMode === 'Mejor valoracion' ? 'active' : ''}
-            onClick={() => setSortMode('Mejor valoracion')}
-            type="button"
-          >
-            <Star size={25} aria-hidden="true" />
-            <span>Mejores restaurantes</span>
-          </button>
-        </section>
-
-        <section className="reference-section">
-          <div className="reference-section-heading">
-            <h2>Locales cerca de vos</h2>
-            <div className="inline-filters">
-              <label>
-                <Filter size={16} aria-hidden="true" />
-                <select
-                  aria-label="Filtrar por tipo de restaurante"
-                  onChange={(event) => {
-                    setCategoryKey('all');
-                    setStoreType(event.target.value);
-                  }}
-                  value={storeType}
-                >
-                  {storeTypes.map((type) => (
-                    <option key={type}>{type}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <ShoppingCart size={16} aria-hidden="true" />
-                <select
-                  aria-label="Filtrar por tipo de comida"
-                  onChange={(event) => {
-                    setCategoryKey('all');
-                    setFoodType(event.target.value);
-                  }}
-                  value={foodType}
-                >
-                  {foodTypes.map((type) => (
-                    <option key={type}>{type}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <div className="local-list">
-            {visibleStores.map((store, index) => (
-              <article className="local-card" key={store.id}>
-                <button className="local-card-main" onClick={() => selectStore(store.id)} type="button">
-                  <SafeImage src={store.imageUrl} alt="" />
-                  <div className="local-info">
-                    <div className="local-title-row">
-                      <h3>{store.name}</h3>
-                      {index === 0 ? <span>Destacado</span> : null}
-                    </div>
-                    <p>{store.type} | {store.tags.slice(0, 2).join(' | ')}</p>
-                    <div className="local-meta">
-                      <span>
-                        <Star size={17} aria-hidden="true" fill="currentColor" /> {store.rating}
-                      </span>
-                      <span>
-                        <MapPin size={17} aria-hidden="true" /> {store.distanceKm} km
-                      </span>
-                    </div>
-                    <div className="local-delivery-row">
-                      <span>
-                        <Clock size={21} aria-hidden="true" />
-                        <strong>{store.deliveryMinutes}</strong>
-                        Entrega estimada
-                      </span>
-                      <span>
-                        <Bike size={21} aria-hidden="true" />
-                        <strong>{formatCurrency(store.deliveryFee)}</strong>
-                        Envio
-                      </span>
-                    </div>
-                  </div>
-                </button>
+            <section className="reference-categories" aria-label="Categorias principales">
+              {categoryCards.map(({ key, label, icon: Icon }) => (
                 <button
-                  aria-label={`Favorito ${store.name}`}
-                  className={`favorite-button ${favoriteStoreIds.includes(store.id) ? 'active' : ''}`}
-                  onClick={() => toggleFavorite(store.id)}
+                  className={categoryKey === key ? 'active' : ''}
+                  key={key}
+                  onClick={() => selectCategory(key)}
                   type="button"
                 >
-                  <Heart size={27} aria-hidden="true" fill="currentColor" />
+                  <span className={`category-icon category-${key}`}>
+                    <Icon size={42} aria-hidden="true" strokeWidth={2.1} />
+                  </span>
+                  <strong>{label}</strong>
                 </button>
-              </article>
-            ))}
-          </div>
-        </section>
+              ))}
+            </section>
 
-        <Panel
-          className="menu-panel menu-home-panel"
-          title={`Menu de ${selectedStore.name}`}
-          action={<span className="subtle-label">{selectedStore.schedule}</span>}
-        >
-          <div id="selected-menu" className="store-detail-strip">
-            <span>
-              <MapPin size={15} aria-hidden="true" /> {selectedStore.address}
-            </span>
-            <span>
-              <WalletCards size={15} aria-hidden="true" /> Delivery{' '}
-              {formatCurrency(selectedStore.deliveryFee)}
-            </span>
-          </div>
+            <section className="reference-section home-products-section">
+              <div className="reference-section-heading">
+                <h2>Productos populares</h2>
+                <button onClick={() => selectCategory('restaurants')} type="button">
+                  Ver restaurantes
+                  <ChevronRight size={18} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="home-product-preview-list">
+                {homePreviewProducts.map((product) => renderDishCard(product, true))}
+              </div>
+            </section>
+          </>
+        ) : (
+          <section className="restaurant-app-page" aria-labelledby="restaurant-page-title">
+            <div className="restaurant-topbar">
+              <button aria-label="Volver al inicio" className="restaurant-back-button" onClick={returnHome} type="button">
+                <ArrowLeft size={28} aria-hidden="true" />
+              </button>
+              <label className="restaurant-search">
+                <Search size={28} aria-hidden="true" />
+                <input
+                  aria-label={`Buscar en ${exploreTitle}`}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Busca productos..."
+                  value={query}
+                />
+              </label>
+              <button className="restaurant-cart-button" onClick={() => setCartOpen(true)} type="button">
+                <ShoppingCart size={30} aria-hidden="true" />
+                {cartItemsCount ? <span>{cartItemsCount}</span> : null}
+              </button>
+            </div>
 
-          {Object.entries(groupedProducts).length ? (
-            <div className="menu-sections">
-              {Object.entries(groupedProducts).map(([group, groupProducts]) => (
-                <section className="menu-section" key={group}>
-                  <div className="menu-section-heading">
-                    <h3>{group}</h3>
-                    <span>{groupProducts.length} productos</span>
+            <nav className="food-type-scroll" aria-label="Tipos de comida">
+              {foodFilters.map(({ value, label, icon: Icon, tone }) => (
+                <button
+                  className={foodType === value ? `food-type-button active tone-${tone}` : `food-type-button tone-${tone}`}
+                  key={value}
+                  onClick={() => setFoodType(value)}
+                  type="button"
+                >
+                  <span>
+                    <Icon size={30} aria-hidden="true" strokeWidth={2.1} />
+                  </span>
+                  <strong>{label}</strong>
+                </button>
+              ))}
+              {extraFoodFilters.length ? (
+                <button
+                  className={showMoreFoodTypes ? 'food-type-button more active' : 'food-type-button more'}
+                  onClick={() => setShowMoreFoodTypes((current) => !current)}
+                  type="button"
+                >
+                  <span>
+                    <Grid2x2 size={30} aria-hidden="true" strokeWidth={2.1} />
+                  </span>
+                  <strong>Mas</strong>
+                </button>
+              ) : null}
+            </nav>
+
+            <div id="restaurant-focus" />
+
+            {activeRestaurantStore ? (
+              <article className="store-spotlight-card">
+                <SafeImage src={activeRestaurantStore.imageUrl} alt="" />
+                <div className="store-spotlight-content">
+                  <span className="spotlight-kicker">
+                    <StoreIcon size={17} aria-hidden="true" />
+                    {activeRestaurantStore.open ? 'Abierto ahora' : 'Cerrado'}
+                  </span>
+                  <h2 id="restaurant-page-title">{activeRestaurantStore.name}</h2>
+                  <p>{activeRestaurantStore.type} | {activeRestaurantStore.tags.join(' | ')}</p>
+                  <div className="spotlight-meta">
+                    <span>
+                      <Star size={16} aria-hidden="true" fill="currentColor" /> {activeRestaurantStore.rating}
+                    </span>
+                    <span>
+                      <Clock size={16} aria-hidden="true" /> {activeRestaurantStore.deliveryMinutes}
+                    </span>
+                    <span>
+                      <Bike size={16} aria-hidden="true" /> {formatCurrency(activeRestaurantStore.deliveryFee)}
+                    </span>
                   </div>
-                  <div className="product-grid">
-                    {groupProducts.map((product) => (
-                      <article
-                        className={!product.available ? 'product-card product-tile unavailable' : 'product-card product-tile'}
-                        key={product.id}
-                      >
-                        <SafeImage src={product.imageUrl} alt="" />
-                        <div className="product-body">
-                          <div>
-                            <strong>{product.name}</strong>
-                            <p>{product.description}</p>
-                          </div>
-                          <div className="product-footer">
-                            <span>{formatCurrency(product.price)}</span>
-                            <label>
-                              <span className="sr-only">Opcion para {product.name}</span>
-                              <select
-                                disabled={!product.available}
-                                onChange={(event) =>
-                                  setSelectedOptions((current) => ({
-                                    ...current,
-                                    [product.id]: event.target.value,
-                                  }))
-                                }
-                                value={selectedOptions[product.id] ?? product.options[0] ?? ''}
-                              >
-                                {product.options.map((option) => (
-                                  <option key={option}>{option}</option>
-                                ))}
-                              </select>
-                            </label>
-                            <ActionButton
-                              disabled={!product.available || !selectedStore.open}
-                              icon={Plus}
-                              onClick={() => addProductToCart(product)}
-                              variant="primary"
-                            >
-                              Agregar
-                            </ActionButton>
-                          </div>
+                  <div className="store-address-line">
+                    <MapPin size={16} aria-hidden="true" />
+                    <span>{activeRestaurantStore.address}</span>
+                  </div>
+                  <button className="clear-store-button" onClick={() => setActiveRestaurantStoreId(null)} type="button">
+                    Ver otros locales
+                  </button>
+                </div>
+              </article>
+            ) : promotedProduct ? (
+              <article className="featured-deal-card">
+                <div className="featured-deal-copy">
+                  <span>
+                    <BadgePercent size={17} aria-hidden="true" />
+                    Oferta especial
+                  </span>
+                  <h2 id="restaurant-page-title">{promotedProduct.name}</h2>
+                  <p>{promotedProduct.description}</p>
+                  <div className="featured-price-row">
+                    <strong>{formatCurrency(promotedProduct.price)}</strong>
+                    <s>{formatCurrency(Number((promotedProduct.price * 1.35).toFixed(2)))}</s>
+                  </div>
+                  <button
+                    disabled={!promotedProduct.available || !promotedStore.open}
+                    onClick={() => addProductToCart(promotedProduct)}
+                    type="button"
+                  >
+                    <span>Agregar</span>
+                    <Plus size={25} aria-hidden="true" />
+                  </button>
+                </div>
+                <SafeImage src={promotedProduct.imageUrl} alt="" />
+                <b>25%<small>OFF</small></b>
+              </article>
+            ) : null}
+
+            <section className="restaurant-content-section">
+              <div className="restaurant-section-heading">
+                <div>
+                  <h2>{activeRestaurantStore ? `Productos de ${activeRestaurantStore.name}` : `${exploreTitle} cerca de vos`}</h2>
+                  <span>
+                    {activeRestaurantStore
+                      ? `${menuProducts.length} productos disponibles`
+                      : `${visibleStores.length} locales disponibles`}
+                  </span>
+                </div>
+                {!activeRestaurantStore ? (
+                  <button onClick={() => setFoodType('Todas')} type="button">
+                    Ver todos
+                    <ChevronRight size={20} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+
+              {activeRestaurantStore ? (
+                Object.entries(groupedProducts).length ? (
+                  <div className="menu-product-list">
+                    {Object.entries(groupedProducts).map(([group, groupProducts]) => (
+                      <section className="restaurant-product-group" key={group}>
+                        <div className="menu-section-heading">
+                          <h3>{group}</h3>
+                          <span>{groupProducts.length} productos</span>
                         </div>
-                      </article>
+                        <div className="dish-list">
+                          {groupProducts.map((product) => renderDishCard(product))}
+                        </div>
+                      </section>
                     ))}
                   </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <EmptyState body="Prueba otro tipo de comida o selecciona otra tienda." title="Sin productos" />
-          )}
-        </Panel>
+                ) : (
+                  <EmptyState body="Prueba otro tipo de comida o selecciona otro local." title="Sin productos" />
+                )
+              ) : visibleStores.length ? (
+                <div className="local-list restaurant-local-list">
+                  {visibleStores.map((store, index) => renderStoreCard(store, index))}
+                </div>
+              ) : (
+                <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin locales" />
+              )}
+            </section>
+          </section>
+        )}
       </div>
 
       {cartItemsCount ? (
@@ -590,15 +711,16 @@ export function ClientPortal({
             onClick={(event) => event.stopPropagation()}
             role="dialog"
           >
-            <div className="cart-sheet-handle" />
-            <div className="cart-sheet-heading">
-              <div>
-                <h2 id="cart-sheet-title">Carrito</h2>
-                <span>{cartStore?.name ?? 'Tienda seleccionada'}</span>
+            <div className="cart-sheet-hero">
+              <div className="cart-title-row">
+                <button aria-label="Cerrar carrito" className="cart-back-button" onClick={() => setCartOpen(false)} type="button">
+                  <ArrowLeft size={28} aria-hidden="true" />
+                </button>
+                <div className="cart-sheet-heading">
+                  <h2 id="cart-sheet-title">Mi carrito</h2>
+                  <span>{cartItemsCount} productos</span>
+                </div>
               </div>
-              <button aria-label="Cerrar carrito" className="icon-button" onClick={() => setCartOpen(false)} type="button">
-                <X size={18} aria-hidden="true" />
-              </button>
             </div>
 
             {lastOrderId ? (
@@ -606,51 +728,46 @@ export function ClientPortal({
             ) : null}
 
             {cartProducts.length ? (
-              <div className="cart-list sheet-cart-list">
-                {cartProducts.map((item) => (
-                  <div className="cart-line" key={item.productId}>
-                    <div>
-                      <strong>{item.product.name}</strong>
-                      <span>{item.option}</span>
-                      <small>{formatCurrency(item.product.price)}</small>
-                    </div>
-                    <div className="quantity-stepper">
+              <>
+                <div className="cart-items-panel">
+                  {cartProducts.map((item) => (
+                    <article className="cart-line" key={item.productId}>
+                      <SafeImage src={item.product.imageUrl} alt="" />
+                      <div className="cart-line-info">
+                        <div>
+                          <strong>{item.product.name}</strong>
+                          <span>{item.product.description}</span>
+                          {item.option ? <small>{item.option}</small> : null}
+                        </div>
+                        <b>{formatCurrency(item.product.price)}</b>
+                      </div>
                       <button
-                        aria-label={`Restar ${item.product.name}`}
-                        onClick={() => onUpdateCartItem(item.productId, item.quantity - 1)}
-                        type="button"
-                      >
-                        <Minus size={14} aria-hidden="true" />
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button
-                        aria-label={`Sumar ${item.product.name}`}
-                        onClick={() => onUpdateCartItem(item.productId, item.quantity + 1)}
-                        type="button"
-                      >
-                        <Plus size={14} aria-hidden="true" />
-                      </button>
-                      <button
+                        className="cart-remove-button"
                         aria-label={`Eliminar ${item.product.name}`}
                         onClick={() => onRemoveCartItem(item.productId)}
                         type="button"
                       >
-                        <Trash2 size={14} aria-hidden="true" />
+                        <Trash2 size={19} aria-hidden="true" />
                       </button>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="totals">
-                  <span>
-                    Subtotal <strong>{formatCurrency(subtotal)}</strong>
-                  </span>
-                  <span>
-                    Delivery <strong>{formatCurrency(deliveryFee)}</strong>
-                  </span>
-                  <span className="total-line">
-                    Total <strong>{formatCurrency(total)}</strong>
-                  </span>
+                      <div className="quantity-stepper">
+                        <button
+                          aria-label={`Restar ${item.product.name}`}
+                          onClick={() => onUpdateCartItem(item.productId, item.quantity - 1)}
+                          type="button"
+                        >
+                          <Minus size={18} aria-hidden="true" />
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          aria-label={`Sumar ${item.product.name}`}
+                          onClick={() => onUpdateCartItem(item.productId, item.quantity + 1)}
+                          type="button"
+                        >
+                          <Plus size={18} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </article>
+                  ))}
                 </div>
 
                 {checkoutOpen ? (
@@ -720,11 +837,30 @@ export function ClientPortal({
                     </ActionButton>
                   </div>
                 ) : (
-                  <ActionButton icon={WalletCards} onClick={() => setCheckoutOpen(true)} variant="primary">
-                    Proceder al pago
-                  </ActionButton>
+                  <div className="cart-summary-panel">
+                    <div className="totals">
+                      <span>
+                        Subtotal <strong>{formatCurrency(subtotal)}</strong>
+                      </span>
+                      <span>
+                        Envio <strong>{formatCurrency(deliveryFee)}</strong>
+                      </span>
+                      <span className="total-line">
+                        Total <strong>{formatCurrency(total)}</strong>
+                      </span>
+                    </div>
+                    <button className="cart-continue-button" onClick={() => setCheckoutOpen(true)} type="button">
+                      <span>Continuar</span>
+                      <strong>{formatCurrency(total)}</strong>
+                      <ChevronRight size={28} aria-hidden="true" />
+                    </button>
+                    <span className="secure-payment-note">
+                      <LockKeyhole size={16} aria-hidden="true" />
+                      Pago seguro
+                    </span>
+                  </div>
                 )}
-              </div>
+              </>
             ) : (
               <EmptyState
                 body="Agrega productos desde el menu para continuar."
@@ -732,21 +868,6 @@ export function ClientPortal({
               />
             )}
 
-            {currentUser ? (
-              <div className="compact-history">
-                <strong>Historial reciente</strong>
-                {clientHistory.map((order) => (
-                  <div className="history-row" key={order.id}>
-                    <span>{formatTime(order.createdAt)}</span>
-                    <div>
-                      <strong>{order.id}</strong>
-                      <small>{order.customerName}</small>
-                    </div>
-                    <StatusPill status={order.status} />
-                  </div>
-                ))}
-              </div>
-            ) : null}
           </section>
         </div>
       ) : null}
