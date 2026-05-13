@@ -31,7 +31,7 @@ if not exist "node_modules\" (
 
 echo.
 echo Iniciando servidor local de PideYA...
-echo Abre http://localhost:5173 en el navegador.
+echo Abre http://localhost:5174 en el navegador.
 echo.
 
 call npm run dev -- --host 0.0.0.0
