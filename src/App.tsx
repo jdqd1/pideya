@@ -259,6 +259,14 @@ function App() {
     ]);
   };
 
+  const updateProduct = (productId: string, productUpdate: Omit<Product, 'id'>) => {
+    setProducts((currentProducts) =>
+      currentProducts.map((product) =>
+        product.id === productId ? { ...productUpdate, id: product.id } : product,
+      ),
+    );
+  };
+
   const toggleStoreOpen = (storeId: string) => {
     setStores((currentStores) =>
       currentStores.map((storefront) =>
@@ -359,8 +367,8 @@ function App() {
           onManagedStoreChange={setManagedStoreId}
           onOrderStatusChange={changeOrderStatus}
           onLogout={logout}
-          onToggleProduct={toggleProduct}
           onToggleStoreOpen={toggleStoreOpen}
+          onUpdateProduct={updateProduct}
           orders={orders}
           products={products}
           stores={stores}
