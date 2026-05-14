@@ -3,12 +3,15 @@ import {
   ArrowLeft,
   BadgePercent,
   Beef,
+  Bell,
   Bike,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   ChevronUp,
   Clock,
   Coffee,
+  Edit3,
   Croissant,
   CupSoda,
   CakeSlice,
@@ -32,6 +35,7 @@ import {
   UserRound,
   Utensils,
   WalletCards,
+  X,
   type LucideIcon,
 } from 'lucide-react';
 import pideyaLogo from '../assets/pideya-logo.png';
@@ -41,6 +45,25 @@ import { formatCurrency } from '../utils/format';
 
 type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops' | 'bakery' | 'desserts';
 type ClientView = 'home' | 'restaurants';
+type DeliveryLocationId = 'home' | 'work' | 'current';
+
+const initialClientNotifications = [
+  {
+    id: 'promo-free-delivery',
+    title: 'Envio destacado',
+    body: 'Burger Line tiene envios rapidos cerca de tu ubicacion.',
+  },
+  {
+    id: 'order-ready',
+    title: 'Pedido en curso',
+    body: 'Tu ultimo pedido simulado sigue activo en la plataforma.',
+  },
+  {
+    id: 'new-desserts',
+    title: 'Nuevos postres',
+    body: 'Dulce Ruta agrego opciones populares para esta semana.',
+  },
+];
 
 interface ClientPortalProps {
   stores: Storefront[];
@@ -188,6 +211,11 @@ export function ClientPortal({
   const [categoryKey, setCategoryKey] = useState<CategoryKey>('all');
   const [showMoreFoodTypes, setShowMoreFoodTypes] = useState(false);
   const [activeRestaurantStoreId, setActiveRestaurantStoreId] = useState<string | null>(null);
+  const [selectedLocationId, setSelectedLocationId] = useState<DeliveryLocationId>('home');
+  const [locationMenuOpen, setLocationMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsClosing, setNotificationsClosing] = useState(false);
+  const [clientNotifications, setClientNotifications] = useState(initialClientNotifications);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -401,6 +429,25 @@ export function ClientPortal({
   const cartItemsCount = cartProducts.reduce((sum, item) => sum + item.quantity, 0);
   const getProductCartQuantity = (productId: string) =>
     cart.find((item) => item.productId === productId)?.quantity ?? 0;
+  const deliveryLocations = [
+    {
+      id: 'home' as const,
+      label: 'Casa',
+      address: currentUser?.savedAddresses?.[0] ?? 'Residencias Turia, Torre B',
+    },
+    {
+      id: 'work' as const,
+      label: 'Trabajo',
+      address: currentUser?.savedAddresses?.[1] ?? 'Oficina Torre Platinum, piso 4',
+    },
+    {
+      id: 'current' as const,
+      label: 'Mi Ubicacion',
+      address: 'Ubicacion actual del cliente',
+    },
+  ];
+  const selectedDeliveryLocation =
+    deliveryLocations.find((location) => location.id === selectedLocationId) ?? deliveryLocations[0];
   const customerOrders = currentUser
     ? orders.filter(
         (order) => order.customerPhone === currentUser.phone || order.customerName === currentUser.name,
@@ -480,6 +527,14 @@ export function ClientPortal({
     onLogout();
   };
 
+  const closeNotifications = () => {
+    setNotificationsClosing(true);
+    window.setTimeout(() => {
+      setNotificationsOpen(false);
+      setNotificationsClosing(false);
+    }, 240);
+  };
+
   const submitOrder = () => {
     setCheckoutError('');
     setLastOrderId('');
@@ -491,7 +546,7 @@ export function ClientPortal({
 
     const customerName = currentUser ? currentUser.name : guestName;
     const customerPhone = currentUser ? currentUser.phone : guestPhone;
-    const address = currentUser ? currentUser.savedAddresses?.[0] ?? '' : guestAddress;
+    const address = currentUser ? selectedDeliveryLocation.address : guestAddress;
 
     if (!customerName.trim() || !customerPhone.trim() || !address.trim()) {
       setCheckoutError('Completa nombre, telefono y direccion para reportar el pedido a la tienda.');
@@ -746,22 +801,86 @@ export function ClientPortal({
       <div className="mobile-home-frame">
         {clientView === 'home' ? (
           <>
-            <section className="reference-hero">
+            <section className={`reference-hero ${locationMenuOpen || notificationsOpen ? 'location-menu-open' : ''}`.trim()}>
               <div className="reference-hero-top">
                 <div className="hero-brand">
                   <img src={pideyaLogo} alt="PideYa" />
                   <strong>Pide<span>Ya</span></strong>
                 </div>
-                <div className="hero-auth-actions">
-                  <button className="hero-auth ghost" onClick={onOpenLogin} type="button">
-                    <UserRound size={20} aria-hidden="true" />
-                    <span>Iniciar sesion</span>
-                  </button>
-                  <button className="hero-auth primary" onClick={onOpenRegister} type="button">
-                    <Plus size={20} aria-hidden="true" />
-                    <span>Registrarse</span>
-                  </button>
-                </div>
+                {currentUser ? (
+                  <div className="hero-auth-actions hero-location-actions">
+                    <div className="hero-location-control">
+                      <button
+                        className="hero-location-button"
+                        onClick={() => {
+                          setLocationMenuOpen((current) => !current);
+                          setNotificationsOpen(false);
+                        }}
+                        type="button"
+                      >
+                        <MapPin size={19} aria-hidden="true" />
+                        <span>
+                          <strong>{selectedDeliveryLocation.label}</strong>
+                          <small>{selectedDeliveryLocation.address}</small>
+                        </span>
+                        <ChevronDown size={18} aria-hidden="true" />
+                      </button>
+
+                      {locationMenuOpen ? (
+                        <div className="hero-location-menu">
+                          {deliveryLocations.map((location) => (
+                            <button
+                              className={selectedLocationId === location.id ? 'active' : ''}
+                              key={location.id}
+                              onClick={() => {
+                                setSelectedLocationId(location.id);
+                                setLocationMenuOpen(false);
+                              }}
+                              type="button"
+                            >
+                              <MapPin size={16} aria-hidden="true" />
+                              <span>
+                                <strong>{location.label}</strong>
+                                <small>{location.address}</small>
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="hero-notification-control">
+                      <button
+                        aria-label="Abrir notificaciones"
+                        className="hero-notification-button"
+                        onClick={() => {
+                          if (notificationsOpen) {
+                            closeNotifications();
+                          } else {
+                            setNotificationsClosing(false);
+                            setNotificationsOpen(true);
+                          }
+                          setLocationMenuOpen(false);
+                        }}
+                        type="button"
+                      >
+                        <Bell size={20} aria-hidden="true" />
+                        {clientNotifications.length ? <strong>{clientNotifications.length}</strong> : null}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="hero-auth-actions">
+                    <button className="hero-auth ghost" onClick={onOpenLogin} type="button">
+                      <UserRound size={20} aria-hidden="true" />
+                      <span>Iniciar sesion</span>
+                    </button>
+                    <button className="hero-auth primary" onClick={onOpenRegister} type="button">
+                      <Plus size={20} aria-hidden="true" />
+                      <span>Registrarse</span>
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="hero-content">
                 <div>
@@ -1066,6 +1185,11 @@ export function ClientPortal({
 
             <div className="account-actions" aria-label="Opciones de cuenta">
               <button type="button">
+                <Edit3 size={20} aria-hidden="true" />
+                <span>Editar datos</span>
+                <ChevronRight size={20} aria-hidden="true" />
+              </button>
+              <button type="button">
                 <ClipboardList size={20} aria-hidden="true" />
                 <span>Historial</span>
                 <ChevronRight size={20} aria-hidden="true" />
@@ -1085,6 +1209,66 @@ export function ClientPortal({
                 <span>Cerrar sesion</span>
                 <ChevronRight size={20} aria-hidden="true" />
               </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {notificationsOpen && currentUser ? (
+        <div
+          className={`notification-sheet-backdrop ${notificationsClosing ? 'closing' : ''}`.trim()}
+          role="presentation"
+          onClick={closeNotifications}
+        >
+          <section
+            aria-labelledby="notification-sheet-title"
+            className={`notification-sheet ${notificationsClosing ? 'closing' : ''}`.trim()}
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <div className="notification-sheet-heading">
+              <div>
+                <span>Centro de avisos</span>
+                <h2 id="notification-sheet-title">Notificaciones</h2>
+              </div>
+              <div className="notification-sheet-actions">
+                <button
+                  className={!clientNotifications.length ? 'hidden-action' : ''}
+                  disabled={!clientNotifications.length}
+                  onClick={() => setClientNotifications([])}
+                  type="button"
+                >
+                  Limpiar
+                </button>
+                <button
+                  aria-label="Cerrar notificaciones"
+                  className="notification-sheet-close"
+                  onClick={closeNotifications}
+                  type="button"
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div className="notification-sheet-list">
+              {clientNotifications.length ? (
+                clientNotifications.map((notification) => (
+                  <article key={notification.id}>
+                    <span>
+                      <Bell size={17} aria-hidden="true" />
+                    </span>
+                    <div>
+                      <strong>{notification.title}</strong>
+                      <p>{notification.body}</p>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="notification-empty">
+                  No tienes notificaciones pendientes.
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -1172,13 +1356,13 @@ export function ClientPortal({
                 {checkoutOpen ? (
                   <div className="checkout-section">
                     {currentUser ? (
-                      <div className="profile-card">
-                        <UserRound size={20} aria-hidden="true" />
-                        <div>
-                          <strong>{currentUser.name}</strong>
-                          <span>{currentUser.savedAddresses?.[0]}</span>
-                        </div>
+                    <div className="profile-card">
+                      <UserRound size={20} aria-hidden="true" />
+                      <div>
+                        <strong>{currentUser.name}</strong>
+                        <span>{selectedDeliveryLocation.address}</span>
                       </div>
+                    </div>
                     ) : (
                       <>
                         <div className="login-nudge">

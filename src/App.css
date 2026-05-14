@@ -326,6 +326,10 @@
   z-index: 2;
 }
 
+.reference-hero.location-menu-open .reference-hero-top {
+  z-index: 40;
+}
+
 .hero-brand {
   align-items: center;
   display: flex;
@@ -357,6 +361,19 @@
   gap: 12px;
 }
 
+.hero-location-actions {
+  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  position: relative;
+}
+
+.hero-location-control,
+.hero-notification-control {
+  position: relative;
+}
+
 .hero-auth {
   align-items: center;
   border-radius: 999px;
@@ -379,6 +396,118 @@
   background: #fff;
   border: 2px solid #fff;
   color: var(--blue-dark);
+}
+
+.hero-location-button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 999px;
+  color: var(--blue-dark);
+  cursor: pointer;
+  display: grid;
+  font-weight: 900;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 58px;
+  min-width: 270px;
+  padding: 0 16px;
+  text-align: left;
+}
+
+.hero-notification-button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 999px;
+  color: var(--blue-dark);
+  cursor: pointer;
+  display: inline-flex;
+  height: 58px;
+  justify-content: center;
+  position: relative;
+  width: 58px;
+}
+
+.hero-notification-button strong {
+  align-items: center;
+  background: var(--coral);
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.66rem;
+  font-weight: 950;
+  height: 20px;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 5px;
+  position: absolute;
+  right: -4px;
+  top: -4px;
+}
+
+.hero-location-button > span,
+.hero-location-menu button > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hero-location-button strong,
+.hero-location-menu strong {
+  line-height: 1;
+}
+
+.hero-location-button small,
+.hero-location-menu small {
+  color: #667085;
+  font-size: 0.74rem;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-location-menu {
+  background: #fff;
+  border: 1px solid #dce6f2;
+  border-radius: 18px;
+  box-shadow:
+    0 18px 52px rgba(3, 24, 78, 0.14),
+    0 6px 18px rgba(21, 32, 51, 0.08);
+  display: grid;
+  gap: 4px;
+  min-width: 270px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 45;
+}
+
+.hero-location-menu button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 54px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.hero-location-menu button.active {
+  background: #eef4ff;
+  color: var(--blue-dark);
+}
+
+.hero-location-menu button svg {
+  color: var(--blue);
 }
 
 .hero-content {
@@ -2824,6 +2953,21 @@
   z-index: 51;
 }
 
+.notification-sheet-backdrop {
+  align-items: flex-end;
+  animation: account-backdrop-in 220ms ease-out both;
+  background: rgba(15, 23, 42, 0.42);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 51;
+}
+
+.notification-sheet-backdrop.closing {
+  animation: account-backdrop-out 240ms ease-in both;
+}
+
 .account-sheet-backdrop.closing {
   animation: account-backdrop-out 240ms ease-in both;
 }
@@ -2842,6 +2986,151 @@
 
 .account-sheet.closing {
   animation: account-sheet-out 240ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+}
+
+.notification-sheet {
+  align-content: start;
+  animation: account-sheet-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: #fff;
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -24px 70px rgba(3, 24, 78, 0.28);
+  color: var(--ink);
+  display: grid;
+  gap: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: min(82dvh, 720px);
+  max-width: 520px;
+  min-height: 68dvh;
+  overflow: hidden;
+  padding: 14px 18px max(24px, env(safe-area-inset-bottom));
+  width: min(100%, 520px);
+}
+
+.notification-sheet.closing {
+  animation: account-sheet-out 240ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+}
+
+.notification-sheet-heading {
+  align-items: center;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 8rem),
+    linear-gradient(135deg, #0b4ee9 0%, #1268f3 58%, #47a9ff 100%);
+  border-radius: 22px;
+  color: #fff;
+  display: flex;
+  gap: 12px;
+  height: 78px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.notification-sheet-heading span {
+  color: rgba(255, 255, 255, 0.78);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.notification-sheet-heading h2 {
+  color: #fff;
+  font-size: 1.24rem;
+  line-height: 1;
+  margin: 3px 0 0;
+}
+
+.notification-sheet-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 122px;
+}
+
+.notification-sheet-actions > button:not(.notification-sheet-close) {
+  align-items: center;
+  background: rgba(255, 233, 228, 0.18);
+  border: 1px solid rgba(255, 210, 202, 0.55);
+  border-radius: 999px;
+  color: #ffe9e4;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 12px;
+  width: 76px;
+}
+
+.notification-sheet-actions > button.hidden-action {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.notification-sheet-close {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.notification-sheet-list {
+  align-content: start;
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 16px;
+}
+
+.notification-sheet-list article {
+  align-items: start;
+  background: #f7f9fc;
+  border: 1px solid #e5ecf5;
+  border-radius: 16px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  padding: 10px;
+}
+
+.notification-sheet-list article > span {
+  align-items: center;
+  background: #eef4ff;
+  border-radius: 14px;
+  color: var(--blue);
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.notification-sheet-list article strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.notification-sheet-list article p,
+.notification-empty {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 3px 0 0;
+}
+
+.notification-empty {
+  background: #f7f9fc;
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
 }
 
 @keyframes account-backdrop-in {
@@ -4136,6 +4425,26 @@
     padding: 0 18px;
   }
 
+  .hero-location-actions {
+    max-width: 360px;
+    width: 360px;
+  }
+
+  .hero-location-button,
+  .hero-location-menu {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hero-location-button {
+    min-height: 52px;
+  }
+
+  .hero-notification-button {
+    height: 52px;
+    width: 52px;
+  }
+
   .hero-content {
     display: block;
     margin-top: 22px;
@@ -4402,6 +4711,70 @@
     max-width: min(232px, calc(100vw - 150px));
     padding-top: 2px;
     width: min(232px, calc(100vw - 150px));
+  }
+
+  .hero-location-actions {
+    max-width: min(214px, calc(100vw - 148px));
+    width: min(214px, calc(100vw - 148px));
+  }
+
+  .hero-location-button {
+    border-width: 1.5px;
+    gap: 6px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 42px;
+    padding: 0 9px;
+  }
+
+  .hero-notification-button {
+    border-width: 1.5px;
+    height: 42px;
+    width: 42px;
+  }
+
+  .hero-notification-button svg {
+    height: 17px;
+    width: 17px;
+  }
+
+  .hero-notification-button strong {
+    font-size: 0.58rem;
+    height: 17px;
+    min-width: 17px;
+    right: -3px;
+    top: -3px;
+  }
+
+  .hero-location-button svg {
+    height: 15px;
+    width: 15px;
+  }
+
+  .hero-location-button strong {
+    font-size: 0.72rem;
+  }
+
+  .hero-location-button small {
+    font-size: 0.6rem;
+  }
+
+  .hero-location-menu {
+    border-radius: 14px;
+    top: calc(100% + 6px);
+  }
+
+  .hero-location-menu button {
+    gap: 7px;
+    min-height: 46px;
+    padding: 7px 8px;
+  }
+
+  .hero-location-menu strong {
+    font-size: 0.76rem;
+  }
+
+  .hero-location-menu small {
+    font-size: 0.62rem;
   }
 
   .hero-auth {
