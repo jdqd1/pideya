@@ -469,6 +469,12 @@ export function ClientPortal({
     }, 240);
   };
 
+  const logoutFromAccount = () => {
+    setAccountOpen(false);
+    setAccountClosing(false);
+    onLogout();
+  };
+
   const submitOrder = () => {
     setCheckoutError('');
     setLastOrderId('');
@@ -1063,7 +1069,7 @@ export function ClientPortal({
                 <span>Favoritos</span>
                 <ChevronRight size={20} aria-hidden="true" />
               </button>
-              <button className="account-logout-button" onClick={onLogout} type="button">
+              <button className="account-logout-button" onClick={logoutFromAccount} type="button">
                 <LogOut size={20} aria-hidden="true" />
                 <span>Cerrar sesion</span>
                 <ChevronRight size={20} aria-hidden="true" />
