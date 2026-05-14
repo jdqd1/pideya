@@ -26,6 +26,60 @@
   padding: 18px 18px 108px;
 }
 
+.install-app-banner {
+  align-items: center;
+  background: linear-gradient(135deg, var(--blue), #0b3f9c);
+  color: #fff;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin: -18px -18px 18px;
+  min-height: 60px;
+  padding: 10px max(18px, env(safe-area-inset-left)) 10px max(18px, env(safe-area-inset-right));
+}
+
+.install-app-banner > div {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.94rem;
+  font-weight: 850;
+  gap: 9px;
+  min-width: 0;
+}
+
+.install-app-banner > div span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.install-app-primary,
+.install-app-close {
+  align-items: center;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 900;
+  justify-content: center;
+}
+
+.install-app-primary {
+  background: #fff;
+  border: 0;
+  color: var(--blue-dark);
+  min-height: 40px;
+  padding: 0 16px;
+}
+
+.install-app-close {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  color: #fff;
+  height: 40px;
+  width: 40px;
+}
+
 .topbar {
   align-items: center;
   background: rgba(255, 255, 255, 0.92);
@@ -209,6 +263,12 @@
     radial-gradient(circle at top left, rgba(18, 104, 243, 0.14), transparent 26rem),
     #ffffff;
   padding: 0 0 108px;
+}
+
+.public-client-shell .install-app-banner {
+  margin: 0;
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
 }
 
 .public-client-shell .home-layout {
@@ -3602,6 +3662,85 @@
   display: flex;
   justify-content: center;
   padding: 18px;
+}
+
+.install-help-backdrop {
+  align-items: flex-end;
+  background: rgba(15, 23, 42, 0.42);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 18px 18px 0;
+  position: fixed;
+  z-index: 60;
+}
+
+.install-help-sheet {
+  animation: account-sheet-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -24px 70px rgba(3, 24, 78, 0.28);
+  color: var(--ink);
+  display: grid;
+  gap: 12px;
+  max-width: 480px;
+  padding: 20px 20px max(22px, env(safe-area-inset-bottom));
+  position: relative;
+  text-align: center;
+  width: min(100%, 480px);
+}
+
+.install-help-close {
+  align-items: center;
+  background: #f3f6fa;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 36px;
+}
+
+.install-help-icon {
+  align-items: center;
+  background: #eef4ff;
+  border-radius: 20px;
+  color: var(--blue);
+  display: inline-flex;
+  height: 58px;
+  justify-content: center;
+  justify-self: center;
+  width: 58px;
+}
+
+.install-help-sheet h2 {
+  font-size: 1.28rem;
+  line-height: 1.1;
+  margin: 0;
+  padding: 0 34px;
+}
+
+.install-help-sheet p {
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.install-help-action {
+  background: var(--blue);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 46px;
+  padding: 0 18px;
 }
 
 .auth-modal {

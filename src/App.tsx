@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { LayoutDashboard, LogIn, LogOut, UserPlus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Download, LayoutDashboard, LogIn, LogOut, Share2, UserPlus, X } from 'lucide-react';
 import './App.css';
 import pideyaLogo from './assets/pideya-logo.png';
 import { AdminPortal } from './components/AdminPortal';
@@ -18,12 +18,36 @@ import {
 import type { AppUser, CartItem, Order, OrderStatus, PaymentMethod, Product, Role } from './types';
 
 type AuthMode = 'login' | 'register';
+type BeforeInstallPromptOutcome = 'accepted' | 'dismissed';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: BeforeInstallPromptOutcome; platform: string }>;
+}
+
+const INSTALL_BANNER_STORAGE_KEY = 'pideya-install-banner-dismissed';
+
+const isStandaloneApp = () => {
+  const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
+
+  return window.matchMedia('(display-mode: standalone)').matches || navigatorWithStandalone.standalone === true;
+};
 
 function App() {
   const [activeRole, setActiveRole] = useState<Role>('client');
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [installBannerDismissed, setInstallBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(INSTALL_BANNER_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [standaloneMode, setStandaloneMode] = useState(() => isStandaloneApp());
   const [stores, setStores] = useState(initialStores);
   const [products, setProducts] = useState(initialProducts);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -37,6 +61,31 @@ function App() {
   );
   const isClientShell = activeRole === 'client';
   const showTopbar = activeRole !== 'client';
+  const showInstallBanner = !standaloneMode && !installBannerDismissed;
+
+  useEffect(() => {
+    const displayModeQuery = window.matchMedia('(display-mode: standalone)');
+    const syncStandaloneMode = () => setStandaloneMode(isStandaloneApp());
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    const handleAppInstalled = () => {
+      setInstallPrompt(null);
+      setInstallHelpOpen(false);
+      setStandaloneMode(true);
+    };
+
+    displayModeQuery.addEventListener('change', syncStandaloneMode);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      displayModeQuery.removeEventListener('change', syncStandaloneMode);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
   const handleAuthComplete = (user: AppUser) => {
     setCurrentUser(user);
@@ -49,6 +98,32 @@ function App() {
     setCurrentUser(null);
     setActiveRole('client');
     setDrawerOpen(false);
+  };
+
+  const dismissInstallBanner = () => {
+    setInstallBannerDismissed(true);
+    setInstallHelpOpen(false);
+
+    try {
+      localStorage.setItem(INSTALL_BANNER_STORAGE_KEY, 'true');
+    } catch {
+      // If storage is unavailable, keep the dismissal for this session.
+    }
+  };
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) {
+      setInstallHelpOpen(true);
+      return;
+    }
+
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    setInstallPrompt(null);
+
+    if (choice.outcome === 'accepted') {
+      dismissInstallBanner();
+    }
   };
 
   const navigateRole = (role: Role) => {
@@ -201,7 +276,27 @@ function App() {
   };
 
   return (
-    <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''}`}>
+    <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''} ${showInstallBanner ? 'install-banner-visible' : ''}`}>
+      {showInstallBanner ? (
+        <section className="install-app-banner" aria-label="Instalar PideYa">
+          <div>
+            <Download size={18} aria-hidden="true" />
+            <span>Instala PideYa y pide mas rapido desde tu pantalla de inicio.</span>
+          </div>
+          <button className="install-app-primary" onClick={handleInstallClick} type="button">
+            Instalar app
+          </button>
+          <button
+            aria-label="Cerrar invitacion para instalar"
+            className="install-app-close"
+            onClick={dismissInstallBanner}
+            type="button"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </section>
+      ) : null}
+
       {showTopbar ? (
         <header className="topbar">
           <div className="brand-lockup">
@@ -313,6 +408,34 @@ function App() {
           onClose={() => setAuthMode(null)}
           onComplete={handleAuthComplete}
         />
+      ) : null}
+
+      {installHelpOpen ? (
+        <div className="install-help-backdrop" role="presentation" onClick={() => setInstallHelpOpen(false)}>
+          <section
+            aria-labelledby="install-help-title"
+            className="install-help-sheet"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <button
+              aria-label="Cerrar instrucciones"
+              className="install-help-close"
+              onClick={() => setInstallHelpOpen(false)}
+              type="button"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+            <div className="install-help-icon">
+              <Share2 size={24} aria-hidden="true" />
+            </div>
+            <h2 id="install-help-title">Instala PideYa en tu pantalla de inicio</h2>
+            <p>En iPhone o iPad, toca Compartir y elige Agregar a pantalla de inicio. En Android, abre el menu del navegador y selecciona Instalar app.</p>
+            <button className="install-help-action" onClick={() => setInstallHelpOpen(false)} type="button">
+              Entendido
+            </button>
+          </section>
+        </div>
       ) : null}
     </main>
   );
