@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutDashboard, LogIn, LogOut, Menu, UserPlus } from 'lucide-react';
+import { LayoutDashboard, LogIn, LogOut, UserPlus } from 'lucide-react';
 import './App.css';
 import pideyaLogo from './assets/pideya-logo.png';
 import { AdminPortal } from './components/AdminPortal';
@@ -35,7 +35,8 @@ function App() {
     () => orders.filter((order) => !['delivered', 'cancelled'].includes(order.status)).length,
     [orders],
   );
-  const isPublicClientHome = activeRole === 'client' && !currentUser;
+  const isClientShell = activeRole === 'client';
+  const showTopbar = activeRole !== 'client';
 
   const handleAuthComplete = (user: AppUser) => {
     setCurrentUser(user);
@@ -200,8 +201,8 @@ function App() {
   };
 
   return (
-    <main className={`app-shell ${isPublicClientHome ? 'public-client-shell' : ''}`}>
-      {!isPublicClientHome ? (
+    <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''}`}>
+      {showTopbar ? (
         <header className="topbar">
           <div className="brand-lockup">
             <img src={pideyaLogo} alt="PideYa" />
@@ -252,6 +253,7 @@ function App() {
           onCreateOrder={createOrder}
           onOpenLogin={() => setAuthMode('login')}
           onOpenRegister={() => setAuthMode('register')}
+          onLogout={logout}
           onRemoveCartItem={removeCartItem}
           onSelectStore={setSelectedStoreId}
           onUpdateCartItem={updateCartItem}
@@ -294,13 +296,6 @@ function App() {
           stores={stores}
           users={users}
         />
-      ) : null}
-
-      {currentUser ? (
-        <button className="footer-menu-button" onClick={() => setDrawerOpen(true)} type="button">
-          <Menu size={18} aria-hidden="true" />
-          <span>Menu</span>
-        </button>
       ) : null}
 
       <RoleDrawer

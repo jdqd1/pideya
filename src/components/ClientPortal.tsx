@@ -12,10 +12,13 @@ import {
   Croissant,
   CupSoda,
   CakeSlice,
+  ClipboardList,
   Grid2x2,
   Heart,
+  Home,
   IceCreamBowl,
   LogIn,
+  LogOut,
   MapPin,
   Minus,
   Plus,
@@ -52,6 +55,7 @@ interface ClientPortalProps {
   onRemoveCartItem: (productId: string) => void;
   onOpenLogin: () => void;
   onOpenRegister: () => void;
+  onLogout: () => void;
   onCreateOrder: (input: {
     customerName: string;
     customerPhone: string;
@@ -129,6 +133,8 @@ const primaryFoodFilters: FoodFilter[] = [
 ];
 
 const nonRestaurantTypes = ['Farmacia', 'Minimarket'];
+const defaultClientPhoto =
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=220&q=80';
 
 const isFoodStore = (store: Storefront) => !nonRestaurantTypes.includes(store.type);
 
@@ -171,6 +177,7 @@ export function ClientPortal({
   onRemoveCartItem,
   onOpenLogin,
   onOpenRegister,
+  onLogout,
   onCreateOrder,
 }: ClientPortalProps) {
   const [clientView, setClientView] = useState<ClientView>('home');
@@ -181,6 +188,8 @@ export function ClientPortal({
   const [activeRestaurantStoreId, setActiveRestaurantStoreId] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountClosing, setAccountClosing] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -387,6 +396,11 @@ export function ClientPortal({
   const cartItemsCount = cartProducts.reduce((sum, item) => sum + item.quantity, 0);
   const getProductCartQuantity = (productId: string) =>
     cart.find((item) => item.productId === productId)?.quantity ?? 0;
+  const customerOrders = currentUser
+    ? orders.filter(
+        (order) => order.customerPhone === currentUser.phone || order.customerName === currentUser.name,
+      )
+    : [];
 
   const exploreTitle =
     categoryKey === 'drinks'
@@ -440,6 +454,19 @@ export function ClientPortal({
 
   const scrollToRestaurantResults = () => {
     document.getElementById('restaurant-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const openAccount = () => {
+    setAccountClosing(false);
+    setAccountOpen(true);
+  };
+
+  const closeAccount = () => {
+    setAccountClosing(true);
+    window.setTimeout(() => {
+      setAccountOpen(false);
+      setAccountClosing(false);
+    }, 240);
   };
 
   const submitOrder = () => {
@@ -939,6 +966,112 @@ export function ClientPortal({
           </section>
         )}
       </div>
+
+      <nav className="mobile-bottom-nav" aria-label="Menu principal">
+        <button
+          className={clientView === 'home' ? 'active' : ''}
+          onClick={returnHome}
+          type="button"
+        >
+          <Home size={21} aria-hidden="true" />
+          <span>Inicio</span>
+        </button>
+        <button
+          className={clientView === 'restaurants' ? 'active' : ''}
+          onClick={() => selectCategory(categoryKey === 'all' ? 'restaurants' : categoryKey)}
+          type="button"
+        >
+          <Search size={21} aria-hidden="true" />
+          <span>Explorar</span>
+        </button>
+        <button
+          className={cartOpen ? 'active' : ''}
+          onClick={() => setCartOpen(true)}
+          type="button"
+        >
+          <ShoppingCart size={21} aria-hidden="true" />
+          <span>Carrito</span>
+          {cartItemsCount ? <strong>{cartItemsCount}</strong> : null}
+        </button>
+        <button
+          className={accountOpen ? 'active' : ''}
+          onClick={currentUser ? openAccount : onOpenLogin}
+          type="button"
+        >
+          <UserRound size={21} aria-hidden="true" />
+          <span>Cuenta</span>
+        </button>
+      </nav>
+
+      {accountOpen && currentUser ? (
+        <div
+          className={`account-sheet-backdrop ${accountClosing ? 'closing' : ''}`.trim()}
+          role="presentation"
+          onClick={closeAccount}
+        >
+          <section
+            aria-labelledby="account-sheet-title"
+            className={`account-sheet ${accountClosing ? 'closing' : ''}`.trim()}
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <div className="account-profile-card">
+              <button
+                aria-label="Cerrar cuenta"
+                className="account-close-button"
+                onClick={closeAccount}
+                type="button"
+              >
+                <ArrowLeft size={24} aria-hidden="true" />
+              </button>
+              <SafeImage className="account-avatar" src={defaultClientPhoto} alt="" />
+              <div>
+                <span>Perfil del cliente</span>
+                <h2 id="account-sheet-title">{currentUser.name}</h2>
+                <p>{currentUser.phone}</p>
+              </div>
+            </div>
+
+            <div className="account-summary-grid">
+              <span>
+                <strong>{customerOrders.length}</strong>
+                Pedidos
+              </span>
+              <span>
+                <strong>{currentUser.savedAddresses?.length ?? 0}</strong>
+                Direcciones
+              </span>
+              <span>
+                <strong>{homePreviewProducts.length}</strong>
+                Favoritos
+              </span>
+            </div>
+
+            <div className="account-actions" aria-label="Opciones de cuenta">
+              <button type="button">
+                <ClipboardList size={20} aria-hidden="true" />
+                <span>Historial</span>
+                <ChevronRight size={20} aria-hidden="true" />
+              </button>
+              <button type="button">
+                <MapPin size={20} aria-hidden="true" />
+                <span>Direcciones</span>
+                <ChevronRight size={20} aria-hidden="true" />
+              </button>
+              <button type="button">
+                <Heart size={20} aria-hidden="true" />
+                <span>Favoritos</span>
+                <ChevronRight size={20} aria-hidden="true" />
+              </button>
+              <button className="account-logout-button" onClick={onLogout} type="button">
+                <LogOut size={20} aria-hidden="true" />
+                <span>Cerrar sesion</span>
+                <ChevronRight size={20} aria-hidden="true" />
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {cartItemsCount ? (
         <button className="cart-launcher" onClick={() => setCartOpen(true)} type="button">
