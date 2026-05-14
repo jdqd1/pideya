@@ -52,7 +52,7 @@ function App() {
     [orders],
   );
   const isClientShell = activeRole === 'client';
-  const showTopbar = activeRole !== 'client';
+  const showTopbar = activeRole !== 'client' && activeRole !== 'store';
   const showInstallBanner = !standaloneMode && !installBannerDismissed;
 
   useEffect(() => {
@@ -358,6 +358,7 @@ function App() {
           onAddProduct={addProduct}
           onManagedStoreChange={setManagedStoreId}
           onOrderStatusChange={changeOrderStatus}
+          onLogout={logout}
           onToggleProduct={toggleProduct}
           onToggleStoreOpen={toggleStoreOpen}
           orders={orders}

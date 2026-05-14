@@ -2356,6 +2356,7 @@
   box-shadow: var(--shadow);
   min-width: 0;
   padding: 18px;
+  scroll-margin-top: 92px;
 }
 
 .panel-heading {
@@ -2942,6 +2943,12 @@
   width: 100%;
 }
 
+.store-bottom-nav {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 640px;
+  width: min(calc(100% - 28px), 640px);
+}
+
 .account-sheet-backdrop {
   align-items: flex-end;
   animation: account-backdrop-in 220ms ease-out both;
@@ -3301,6 +3308,36 @@
 .account-actions .account-logout-button svg:first-child {
   background: var(--coral-soft);
   color: var(--coral);
+}
+
+.store-menu-sheet {
+  max-height: min(88dvh, 720px);
+  overflow-y: auto;
+}
+
+.store-menu-profile {
+  grid-template-columns: 44px 74px minmax(0, 1fr);
+}
+
+.store-menu-actions button > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.store-menu-actions button strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-menu-actions button small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cart-sheet-backdrop,
@@ -3799,6 +3836,47 @@
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.store-payment-summary,
+.inventory-panel-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.store-payment-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.store-payment-summary span,
+.inventory-panel-summary span {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: grid;
+  font-size: 0.8rem;
+  font-weight: 800;
+  gap: 5px;
+  min-height: 72px;
+  padding: 12px;
+}
+
+.store-payment-summary strong {
+  color: var(--ink);
+  font-size: 1.18rem;
+}
+
+.store-payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.inventory-panel-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 12px;
 }
 
 .inventory-table,

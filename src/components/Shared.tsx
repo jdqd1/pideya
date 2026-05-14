@@ -54,16 +54,18 @@ export function StatusPill({ status }: { status: OrderStatus }) {
 export function Panel({
   children,
   className = '',
+  id,
   title,
   action,
 }: {
   children: ReactNode;
   className?: string;
+  id?: string;
   title?: string;
   action?: ReactNode;
 }) {
   return (
-    <section className={`panel ${className}`.trim()}>
+    <section className={`panel ${className}`.trim()} id={id}>
       {title || action ? (
         <div className="panel-heading">
           {title ? <h2>{title}</h2> : <span />}

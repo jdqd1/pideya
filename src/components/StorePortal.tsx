@@ -1,12 +1,19 @@
 import { useMemo, useState } from 'react';
 import {
+  ArrowLeft,
   CheckCircle2,
   Clock,
+  ClipboardList,
+  CreditCard,
+  ChevronRight,
+  LogOut,
   MapPin,
+  Menu as MenuIcon,
   PackageCheck,
   Phone,
   Plus,
   Power,
+  Settings,
   Store,
   Tags,
   WalletCards,
@@ -26,10 +33,13 @@ interface StorePortalProps {
   onToggleProduct: (productId: string) => void;
   onAddProduct: (product: Omit<Product, 'id'>) => void;
   onToggleStoreOpen: (storeId: string) => void;
+  onLogout: () => void;
 }
 
 const productImageFallback =
   'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=700&q=80';
+
+type StoreView = 'dashboard' | 'orders' | 'inventory' | 'payments';
 
 export function StorePortal({
   stores,
@@ -41,6 +51,7 @@ export function StorePortal({
   onToggleProduct,
   onAddProduct,
   onToggleStoreOpen,
+  onLogout,
 }: StorePortalProps) {
   const [draftName, setDraftName] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
@@ -48,6 +59,8 @@ export function StorePortal({
   const [draftCategory, setDraftCategory] = useState('Especiales');
   const [draftStock, setDraftStock] = useState('10');
   const [draftOptions, setDraftOptions] = useState('Extra salsa, Sin cebolla');
+  const [activeView, setActiveView] = useState<StoreView>('dashboard');
+  const [storeMenuOpen, setStoreMenuOpen] = useState(false);
 
   const store = stores.find((item) => item.id === managedStoreId) ?? stores[0];
   const storeProducts = products.filter((product) => product.storeId === store.id);
@@ -64,6 +77,29 @@ export function StorePortal({
     }),
     [storeOrders],
   );
+  const deliveredSales = storeOrders
+    .filter((order) => order.status === 'delivered')
+    .reduce((total, order) => total + order.subtotal + order.deliveryFee, 0);
+  const pendingPayout = storeOrders
+    .filter((order) => !['cancelled', 'delivered'].includes(order.status))
+    .reduce((total, order) => total + order.subtotal + order.deliveryFee, 0);
+  const lowStockProducts = storeProducts.filter((product) => product.stock <= 5).length;
+
+  const navigateStoreSection = (view: StoreView) => {
+    setActiveView(view);
+    document.getElementById(`store-${view}-section`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
+  const menuOptions = [
+    { label: 'Ubicacion de la tienda', detail: store.address, icon: MapPin },
+    { label: 'Datos de pago', detail: 'Cuenta bancaria y pago movil', icon: CreditCard },
+    { label: 'Horario y disponibilidad', detail: store.schedule, icon: Clock },
+    { label: 'Promociones', detail: 'Cupones, descuentos y combos', icon: Tags },
+    { label: 'Ajustes de tienda', detail: 'Perfil, permisos y notificaciones', icon: Settings },
+  ];
 
   const submitProduct = () => {
     const price = Number(draftPrice);
@@ -96,8 +132,9 @@ export function StorePortal({
   };
 
   return (
+    <>
     <div className="role-grid store-grid">
-      <Panel className="store-command">
+      <Panel className="store-command" id="store-dashboard-section">
         <div className="workspace-title">
           <div>
             <span className="zone-label">
@@ -135,6 +172,7 @@ export function StorePortal({
 
       <Panel
         className="orders-panel"
+        id="store-orders-section"
         title="Pedidos de la tienda"
         action={<span className={store.open ? 'store-state open' : 'store-state closed'}>{store.open ? 'Abierta' : 'Cerrada'}</span>}
       >
@@ -217,6 +255,27 @@ export function StorePortal({
         )}
       </Panel>
 
+      <Panel className="store-payments-panel" id="store-payments-section" title="Pagos">
+        <div className="store-payment-summary">
+          <span>
+            <strong>{formatCurrency(deliveredSales)}</strong>
+            Ventas liquidadas
+          </span>
+          <span>
+            <strong>{formatCurrency(pendingPayout)}</strong>
+            Por conciliar
+          </span>
+          <span>
+            <strong>{storeOrders.length}</strong>
+            Pedidos facturados
+          </span>
+        </div>
+        <div className="store-payment-actions">
+          <ActionButton icon={WalletCards} variant="secondary">Ver movimientos</ActionButton>
+          <ActionButton icon={CreditCard} variant="ghost">Datos de pago</ActionButton>
+        </div>
+      </Panel>
+
       <aside className="side-stack">
         <Panel title="Informacion">
           <div className="store-info">
@@ -282,7 +341,11 @@ export function StorePortal({
         </Panel>
       </aside>
 
-      <Panel className="products-panel" title="Inventario visible">
+      <Panel className="products-panel" id="store-inventory-section" title="Inventario visible">
+        <div className="inventory-panel-summary">
+          <span>{storeProducts.length} productos</span>
+          <span>{lowStockProducts} con stock bajo</span>
+        </div>
         <div className="inventory-table">
           {storeProducts.map((product) => (
             <div className="inventory-row" key={product.id}>
@@ -304,5 +367,118 @@ export function StorePortal({
         </div>
       </Panel>
     </div>
+
+    <nav className="mobile-bottom-nav store-bottom-nav" aria-label="Menu de tienda">
+      <button
+        className={activeView === 'dashboard' ? 'active' : ''}
+        onClick={() => navigateStoreSection('dashboard')}
+        type="button"
+      >
+        <Store size={21} aria-hidden="true" />
+        <span>Inicio</span>
+      </button>
+      <button
+        className={activeView === 'orders' ? 'active' : ''}
+        onClick={() => navigateStoreSection('orders')}
+        type="button"
+      >
+        <ClipboardList size={21} aria-hidden="true" />
+        <span>Pedidos</span>
+        {dashboard.newOrders ? <strong>{dashboard.newOrders}</strong> : null}
+      </button>
+      <button
+        className={activeView === 'inventory' ? 'active' : ''}
+        onClick={() => navigateStoreSection('inventory')}
+        type="button"
+      >
+        <PackageCheck size={21} aria-hidden="true" />
+        <span>Inventario</span>
+      </button>
+      <button
+        className={activeView === 'payments' ? 'active' : ''}
+        onClick={() => navigateStoreSection('payments')}
+        type="button"
+      >
+        <WalletCards size={21} aria-hidden="true" />
+        <span>Pagos</span>
+      </button>
+      <button
+        className={storeMenuOpen ? 'active' : ''}
+        onClick={() => setStoreMenuOpen(true)}
+        type="button"
+      >
+        <MenuIcon size={21} aria-hidden="true" />
+        <span>Menu</span>
+      </button>
+    </nav>
+
+    {storeMenuOpen ? (
+      <div className="account-sheet-backdrop" role="presentation" onClick={() => setStoreMenuOpen(false)}>
+        <section
+          aria-labelledby="store-menu-title"
+          className="account-sheet store-menu-sheet"
+          onClick={(event) => event.stopPropagation()}
+          role="dialog"
+        >
+          <div className="account-profile-card store-menu-profile">
+            <button
+              aria-label="Cerrar menu"
+              className="account-close-button"
+              onClick={() => setStoreMenuOpen(false)}
+              type="button"
+            >
+              <ArrowLeft size={24} aria-hidden="true" />
+            </button>
+            <SafeImage className="account-avatar" src={store.imageUrl} alt="" />
+            <div>
+              <span>Menu de tienda</span>
+              <h2 id="store-menu-title">{store.name}</h2>
+              <p>{store.open ? 'Abierta ahora' : 'Cerrada'}</p>
+            </div>
+          </div>
+
+          <div className="account-summary-grid">
+            <span>
+              <strong>{dashboard.newOrders}</strong>
+              Nuevos
+            </span>
+            <span>
+              <strong>{storeProducts.length}</strong>
+              Productos
+            </span>
+            <span>
+              <strong>{lowStockProducts}</strong>
+              Stock bajo
+            </span>
+          </div>
+
+          <div className="account-actions store-menu-actions" aria-label="Opciones de tienda">
+            {menuOptions.map((option) => {
+              const Icon = option.icon;
+
+              return (
+                <button key={option.label} type="button">
+                  <Icon size={20} aria-hidden="true" />
+                  <span>
+                    <strong>{option.label}</strong>
+                    <small>{option.detail}</small>
+                  </span>
+                  <ChevronRight size={20} aria-hidden="true" />
+                </button>
+              );
+            })}
+            <button className="account-logout-button" onClick={onLogout} type="button">
+              <LogOut size={20} aria-hidden="true" />
+              <span>
+                <strong>Cerrar sesion</strong>
+                <small>Salir de la cuenta de tienda</small>
+              </span>
+              <ChevronRight size={20} aria-hidden="true" />
+            </button>
+          </div>
+        </section>
+      </div>
+    ) : null}
+    </>
   );
 }
