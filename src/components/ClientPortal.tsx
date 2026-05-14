@@ -53,6 +53,7 @@ interface ClientPortalProps {
   onAddToCart: (product: Product, option?: string) => void;
   onUpdateCartItem: (productId: string, quantity: number) => void;
   onRemoveCartItem: (productId: string) => void;
+  onClearCart: () => void;
   onOpenLogin: () => void;
   onOpenRegister: () => void;
   onLogout: () => void;
@@ -175,6 +176,7 @@ export function ClientPortal({
   onAddToCart,
   onUpdateCartItem,
   onRemoveCartItem,
+  onClearCart,
   onOpenLogin,
   onOpenRegister,
   onLogout,
@@ -1114,6 +1116,12 @@ export function ClientPortal({
                   <h2 id="cart-sheet-title">Mi carrito</h2>
                   <span>{cartItemsCount} productos</span>
                 </div>
+                {cartProducts.length ? (
+                  <button className="cart-clear-button" onClick={onClearCart} type="button">
+                    <Trash2 size={16} aria-hidden="true" />
+                    <span>Vaciar</span>
+                  </button>
+                ) : null}
               </div>
             </div>
 

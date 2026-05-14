@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Bike, LockKeyhole, ShieldCheck, Store, UserRound, X } from 'lucide-react';
+import { Bike, LockKeyhole, Mail, ShieldCheck, Store, UserRound, X } from 'lucide-react';
 import type { AppUser, Role } from '../types';
 import { ActionButton } from './Shared';
 
@@ -22,6 +22,8 @@ const loginRoles: Array<{ role: Role; label: string; icon: typeof UserRound }> =
   { role: 'admin', label: 'Admin', icon: ShieldCheck },
 ];
 
+const operatorLoginRoles = loginRoles.filter(({ role }) => role !== 'client');
+
 export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
   const isRegister = mode === 'register';
   const [selectedRole, setSelectedRole] = useState<Role>('client');
@@ -34,7 +36,8 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
   const title = isRegister ? 'Crear cuenta' : 'Iniciar sesion';
   const roles = useMemo(() => (isRegister ? registerRoles : loginRoles), [isRegister]);
 
-  const submitAuth = () => {
+  const submitAuth = (roleOverride?: Role) => {
+    const authRole = roleOverride ?? selectedRole;
     const fallbackNames: Record<Role, string> = {
       client: 'Ana Perez',
       delivery: 'Mario Campos',
@@ -43,12 +46,12 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
     };
 
     onComplete({
-      id: `auth-${selectedRole}-${Date.now()}`,
-      name: name.trim() || fallbackNames[selectedRole],
+      id: `auth-${authRole}-${Date.now()}`,
+      name: name.trim() || fallbackNames[authRole],
       phone: phone.trim() || '+58 412-555-0000',
-      role: selectedRole,
+      role: authRole,
       savedAddresses:
-        selectedRole === 'client'
+        authRole === 'client'
           ? ['Residencias Turia, Torre B', 'Oficina Torre Platinum, piso 4']
           : undefined,
     });
@@ -57,31 +60,34 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
   return (
     <div className="modal-backdrop" role="presentation">
       <section aria-labelledby="auth-title" className="auth-modal" role="dialog">
-        <div className="modal-heading">
+        <div className="modal-heading auth-modal-heading">
           <div>
             <span className="zone-label">
               <LockKeyhole size={15} aria-hidden="true" /> Acceso PideYa
             </span>
             <h2 id="auth-title">{title}</h2>
+            {!isRegister ? <p>Entra como cliente con tu correo y contrasena.</p> : null}
           </div>
           <button aria-label="Cerrar" className="icon-button" onClick={onClose} type="button">
             <X size={18} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="role-picker" role="group" aria-label="Tipo de usuario">
-          {roles.map(({ role, label, icon: Icon }) => (
-            <button
-              className={selectedRole === role ? 'active' : ''}
-              key={role}
-              onClick={() => setSelectedRole(role)}
-              type="button"
-            >
-              <Icon size={17} aria-hidden="true" />
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
+        {isRegister ? (
+          <div className="role-picker" role="group" aria-label="Tipo de usuario">
+            {roles.map(({ role, label, icon: Icon }) => (
+              <button
+                className={selectedRole === role ? 'active' : ''}
+                key={role}
+                onClick={() => setSelectedRole(role)}
+                type="button"
+              >
+                <Icon size={17} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div className="auth-fields">
           {isRegister ? (
@@ -100,37 +106,59 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
               value={storeName}
             />
           ) : null}
-          <input
-            aria-label="Correo electronico"
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Correo electronico"
-            type="email"
-            value={email}
-          />
-          <input
-            aria-label="Telefono"
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="Telefono"
-            value={phone}
-          />
-          <input
-            aria-label="Contrasena"
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Contrasena"
-            type="password"
-            value={password}
-          />
+          <label className="auth-input">
+            <Mail size={18} aria-hidden="true" />
+            <input
+              aria-label="Correo electronico"
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Correo electronico"
+              type="email"
+              value={email}
+            />
+          </label>
+          {isRegister ? (
+            <input
+              aria-label="Telefono"
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="Telefono"
+              value={phone}
+            />
+          ) : null}
+          <label className="auth-input">
+            <LockKeyhole size={18} aria-hidden="true" />
+            <input
+              aria-label="Contrasena"
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Contrasena"
+              type="password"
+              value={password}
+            />
+          </label>
         </div>
 
-        <p className="auth-note">
-          {isRegister
-            ? 'El registro es simulado; al continuar entraras a la interfaz del rol seleccionado.'
-            : 'El acceso es simulado para probar las interfaces. Admin solo entra desde inicio de sesion.'}
-        </p>
+        {isRegister ? (
+          <p className="auth-note">
+            El registro es simulado; al continuar entraras a la interfaz del rol seleccionado.
+          </p>
+        ) : null}
 
-        <ActionButton icon={LockKeyhole} onClick={submitAuth} variant="primary">
+        <ActionButton icon={LockKeyhole} onClick={() => submitAuth()} variant="primary">
           {isRegister ? 'Registrarme' : 'Entrar'}
         </ActionButton>
+
+        {!isRegister ? (
+          <div className="operator-login-panel">
+            <span>Accesos operativos</span>
+            <div>
+              {operatorLoginRoles.map(({ role, label, icon: Icon }) => (
+                <button key={role} onClick={() => submitAuth(role)} type="button">
+                  <Icon size={16} aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );

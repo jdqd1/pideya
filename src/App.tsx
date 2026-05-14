@@ -150,6 +150,10 @@ function App() {
     setCart((currentCart) => currentCart.filter((item) => item.productId !== productId));
   };
 
+  const clearCart = () => {
+    setCart([]);
+  };
+
   const createOrder = (input: {
     customerName: string;
     customerPhone: string;
@@ -337,6 +341,7 @@ function App() {
           onOpenLogin={() => setAuthMode('login')}
           onOpenRegister={() => setAuthMode('register')}
           onLogout={logout}
+          onClearCart={clearCart}
           onRemoveCartItem={removeCartItem}
           onSelectStore={setSelectedStoreId}
           onUpdateCartItem={updateCartItem}

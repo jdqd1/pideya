@@ -3109,7 +3109,7 @@
   align-items: center;
   display: grid;
   gap: 14px;
-  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-columns: 50px minmax(0, 1fr) auto;
 }
 
 .cart-back-button {
@@ -3682,6 +3682,22 @@
   padding: 18px;
 }
 
+.cart-clear-button {
+  align-items: center;
+  background: rgba(255, 233, 228, 0.18);
+  border: 1px solid rgba(255, 210, 202, 0.55);
+  border-radius: 999px;
+  color: #ffe9e4;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 900;
+  gap: 6px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
 .install-help-backdrop {
   align-items: flex-end;
   background: rgba(15, 23, 42, 0.42);
@@ -3762,15 +3778,59 @@
 }
 
 .auth-modal {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: 0 24px 70px rgba(21, 32, 51, 0.22);
+  background: #fff;
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(3, 24, 78, 0.24);
   display: grid;
-  gap: 16px;
-  max-width: 520px;
-  padding: 20px;
-  width: min(100%, 520px);
+  gap: 14px;
+  max-width: 460px;
+  overflow: hidden;
+  padding: 0 18px 18px;
+  width: min(100%, 460px);
+}
+
+.auth-modal-heading {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.16), transparent 8rem),
+    linear-gradient(135deg, #0b4ee9 0%, var(--blue) 58%, #47a9ff 100%);
+  color: #fff;
+  margin: 0 -18px;
+  padding: 20px 18px 22px;
+}
+
+.auth-modal-heading .zone-label,
+.auth-modal-heading h2,
+.auth-modal-heading p {
+  color: #fff;
+}
+
+.auth-modal-heading .zone-label {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 7px 10px;
+}
+
+.auth-modal-heading h2 {
+  font-size: clamp(1.6rem, 5vw, 2rem);
+  line-height: 1;
+}
+
+.auth-modal-heading p {
+  font-size: 0.94rem;
+  line-height: 1.35;
+  margin: 8px 0 0;
+  max-width: 300px;
+  opacity: 0.86;
+}
+
+.auth-modal-heading .icon-button {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #fff;
 }
 
 .role-picker {
@@ -3807,12 +3867,34 @@
   gap: 10px;
 }
 
-.auth-fields input {
+.auth-fields input,
+.auth-input {
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  min-height: 44px;
-  padding: 0 12px;
+  border-radius: 14px;
+  min-height: 50px;
+}
+
+.auth-fields input {
+  color: var(--ink);
+  font-weight: 750;
+  padding: 0 14px;
+}
+
+.auth-input {
+  align-items: center;
+  color: var(--blue);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 0 14px;
+}
+
+.auth-input input {
+  border: 0;
+  min-height: 48px;
+  outline: 0;
+  padding: 0;
 }
 
 .auth-note {
@@ -3820,6 +3902,46 @@
   font-size: 0.86rem;
   line-height: 1.5;
   margin: 0;
+}
+
+.operator-login-panel {
+  border-top: 1px solid #e5ecf5;
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.operator-login-panel > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.operator-login-panel > div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operator-login-panel button {
+  align-items: center;
+  background: #f7f9fc;
+  border: 1px solid #e5ecf5;
+  border-radius: 14px;
+  color: #475467;
+  cursor: pointer;
+  display: grid;
+  font-size: 0.76rem;
+  font-weight: 900;
+  gap: 5px;
+  justify-items: center;
+  min-height: 58px;
+  padding: 8px 6px;
+}
+
+.operator-login-panel button svg {
+  color: var(--blue);
 }
 
 .drawer-backdrop {
@@ -4651,6 +4773,17 @@
 
   .cart-launcher span {
     display: none;
+  }
+
+  .cart-clear-button span {
+    display: inline;
+  }
+
+  .cart-clear-button {
+    gap: 5px;
+    height: 40px;
+    padding: 0 10px;
+    width: auto;
   }
 
   .login-nudge {
