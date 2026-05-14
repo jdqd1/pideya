@@ -384,14 +384,17 @@ export function ClientPortal({
     })
     .filter(Boolean) as Array<CartItem & { product: Product }>;
 
-  const cartStore = cartProducts[0]
-    ? stores.find((store) => store.id === cartProducts[0].product.storeId)
-    : selectedStore;
+  const cartStoreIds = Array.from(new Set(cartProducts.map((item) => item.product.storeId)));
   const subtotal = cartProducts.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0,
   );
-  const deliveryFee = cartProducts.length ? cartStore?.deliveryFee ?? 0 : 0;
+  const deliveryFee = cartProducts.length
+    ? cartStoreIds.reduce((totalFee, storeId) => {
+        const store = stores.find((item) => item.id === storeId);
+        return totalFee + (store?.deliveryFee ?? 0);
+      }, 0)
+    : 0;
   const total = subtotal + deliveryFee;
   const cartItemsCount = cartProducts.reduce((sum, item) => sum + item.quantity, 0);
   const getProductCartQuantity = (productId: string) =>
@@ -777,8 +780,14 @@ export function ClientPortal({
             </label>
 
             <section className="reference-categories" aria-label="Categorias principales">
+              <div className="category-group-heading">
+                <h2>Lo mas buscado en PideYa</h2>
+              </div>
               <div className="category-feature-grid">
                 {featuredCategoryCards.map((card) => renderCategoryCard(card))}
+              </div>
+              <div className="category-group-heading category-group-heading-secondary">
+                <h2>Principales tiendas</h2>
               </div>
               <div className="category-scroll-row" aria-label="Mas categorias">
                 {scrollCategoryCards.map((card) => renderCategoryCard(card, true))}

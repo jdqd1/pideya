@@ -25,8 +25,6 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: BeforeInstallPromptOutcome; platform: string }>;
 }
 
-const INSTALL_BANNER_STORAGE_KEY = 'pideya-install-banner-dismissed';
-
 const isStandaloneApp = () => {
   const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
 
@@ -40,13 +38,7 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
-  const [installBannerDismissed, setInstallBannerDismissed] = useState(() => {
-    try {
-      return localStorage.getItem(INSTALL_BANNER_STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [installBannerDismissed, setInstallBannerDismissed] = useState(false);
   const [standaloneMode, setStandaloneMode] = useState(() => isStandaloneApp());
   const [stores, setStores] = useState(initialStores);
   const [products, setProducts] = useState(initialProducts);
@@ -103,12 +95,6 @@ function App() {
   const dismissInstallBanner = () => {
     setInstallBannerDismissed(true);
     setInstallHelpOpen(false);
-
-    try {
-      localStorage.setItem(INSTALL_BANNER_STORAGE_KEY, 'true');
-    } catch {
-      // If storage is unavailable, keep the dismissal for this session.
-    }
   };
 
   const handleInstallClick = async () => {
@@ -134,14 +120,6 @@ function App() {
   const addToCart = (product: Product, option?: string) => {
     setSelectedStoreId(product.storeId);
     setCart((currentCart) => {
-      const currentStoreId = currentCart[0]
-        ? products.find((item) => item.id === currentCart[0].productId)?.storeId
-        : product.storeId;
-
-      if (currentStoreId && currentStoreId !== product.storeId) {
-        return [{ productId: product.id, quantity: 1, option }];
-      }
-
       const existing = currentCart.find((item) => item.productId === product.id);
 
       if (existing) {
@@ -191,40 +169,50 @@ function App() {
       return undefined;
     }
 
-    const store = stores.find((item) => item.id === cartProducts[0].product.storeId) ?? stores[0];
-    const subtotal = cartProducts.reduce(
-      (total, item) => total + item.quantity * item.product.price,
-      0,
+    const cartProductsByStore = cartProducts.reduce<Record<string, Array<CartItem & { product: Product }>>>(
+      (groups, item) => {
+        const next = { ...groups };
+        next[item.product.storeId] = [...(next[item.product.storeId] ?? []), item];
+        return next;
+      },
+      {},
     );
-    const nextId = `PY-${1055 + orders.length}`;
+    const createdAt = new Date().toISOString();
+    const newOrders = Object.entries(cartProductsByStore).map(([storeId, storeProducts], index) => {
+      const store = stores.find((item) => item.id === storeId) ?? stores[0];
+      const subtotal = storeProducts.reduce(
+        (total, item) => total + item.quantity * item.product.price,
+        0,
+      );
 
-    const newOrder: Order = {
-      id: nextId,
-      customerName: input.customerName,
-      customerPhone: input.customerPhone,
-      customerRegistered: input.customerRegistered,
-      address: input.address,
-      storeId: store.id,
-      status: 'pending',
-      items: cartProducts.map((item) => ({
-        productId: item.product.id,
-        name: item.product.name,
-        quantity: item.quantity,
-        price: item.product.price,
-        option: item.option,
-      })),
-      subtotal,
-      deliveryFee: store.deliveryFee,
-      courierReward: Math.max(2, Number((store.deliveryFee + 0.8).toFixed(2))),
-      createdAt: new Date().toISOString(),
-      distanceKm: Number((store.distanceKm + 0.8).toFixed(1)),
-      paymentMethod: input.paymentMethod,
-      notes: input.notes,
-    };
+      return {
+        id: `PY-${1055 + orders.length + index}`,
+        customerName: input.customerName,
+        customerPhone: input.customerPhone,
+        customerRegistered: input.customerRegistered,
+        address: input.address,
+        storeId: store.id,
+        status: 'pending',
+        items: storeProducts.map((item) => ({
+          productId: item.product.id,
+          name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+          option: item.option,
+        })),
+        subtotal,
+        deliveryFee: store.deliveryFee,
+        courierReward: Math.max(2, Number((store.deliveryFee + 0.8).toFixed(2))),
+        createdAt,
+        distanceKm: Number((store.distanceKm + 0.8).toFixed(1)),
+        paymentMethod: input.paymentMethod,
+        notes: input.notes,
+      } satisfies Order;
+    });
 
-    setOrders((currentOrders) => [newOrder, ...currentOrders]);
+    setOrders((currentOrders) => [...newOrders, ...currentOrders]);
     setCart([]);
-    return nextId;
+    return newOrders.map((order) => order.id).join(', ');
   };
 
   const changeOrderStatus = (orderId: string, status: OrderStatus) => {
