@@ -52,7 +52,7 @@ function App() {
     [orders],
   );
   const isClientShell = activeRole === 'client';
-  const showTopbar = activeRole !== 'client' && activeRole !== 'store';
+  const showTopbar = activeRole !== 'client' && activeRole !== 'store' && activeRole !== 'delivery';
   const showInstallBanner = !standaloneMode && !installBannerDismissed;
 
   useEffect(() => {
@@ -379,6 +379,7 @@ function App() {
         <DeliveryPortal
           deliveries={initialDeliveries}
           onAcceptDelivery={acceptDelivery}
+          onLogout={logout}
           onOrderStatusChange={changeOrderStatus}
           orders={orders}
           stores={stores}

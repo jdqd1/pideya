@@ -2338,6 +2338,7 @@
 
 .store-command,
 .delivery-command,
+.delivery-service-panel,
 .admin-command {
   grid-column: 1 / -1;
 }
@@ -2393,6 +2394,237 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.delivery-service-card {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.delivery-service-card h2 {
+  font-size: 1.12rem;
+  margin: 10px 0 4px;
+}
+
+.delivery-service-card p {
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.delivery-service-confirm {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(3, 24, 78, 0.24);
+  display: grid;
+  gap: 14px;
+  max-width: 420px;
+  padding: 20px;
+  width: min(100%, 420px);
+}
+
+.delivery-service-confirm-icon {
+  align-items: center;
+  background: #eef4ff;
+  border-radius: 16px;
+  color: var(--blue);
+  display: inline-flex;
+  height: 54px;
+  justify-content: center;
+  width: 54px;
+}
+
+.delivery-service-confirm h2 {
+  font-size: 1.25rem;
+  margin: 0 0 6px;
+}
+
+.delivery-service-confirm p {
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.delivery-service-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.delivery-route-page {
+  display: grid;
+  gap: 14px;
+}
+
+.delivery-route-map {
+  background: #eef4ff;
+  border: 1px solid #d7e6ff;
+  border-radius: 8px;
+  display: grid;
+  min-height: min(62vh, 620px);
+  overflow: hidden;
+  position: relative;
+}
+
+.delivery-route-map-toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  left: 14px;
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 3;
+}
+
+.delivery-route-map-toolbar > span,
+.delivery-route-map-toolbar button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(215, 230, 255, 0.94);
+  border-radius: 999px;
+  color: var(--blue-dark);
+  display: inline-flex;
+  font-weight: 900;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.delivery-route-map-toolbar > div {
+  display: flex;
+  gap: 8px;
+}
+
+.delivery-route-map-toolbar button {
+  cursor: pointer;
+  font-size: 1rem;
+  justify-content: center;
+  padding: 0;
+  width: 38px;
+}
+
+.delivery-map-canvas {
+  min-height: 100%;
+  position: relative;
+}
+
+.delivery-map-plane {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+    #dbeafe;
+  background-size: 72px 72px;
+  inset: -8%;
+  position: absolute;
+  transition: transform 180ms ease;
+}
+
+.map-road,
+.map-route-line {
+  border-radius: 999px;
+  position: absolute;
+}
+
+.map-road {
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 0 0 1px rgba(199, 210, 226, 0.68);
+}
+
+.map-road.main {
+  height: 26px;
+  left: 4%;
+  top: 48%;
+  transform: rotate(-6deg);
+  width: 92%;
+}
+
+.map-road.diagonal {
+  height: 24px;
+  left: 20%;
+  top: 18%;
+  transform: rotate(54deg);
+  width: 68%;
+}
+
+.map-road.side-a {
+  height: 20px;
+  left: 8%;
+  top: 72%;
+  transform: rotate(18deg);
+  width: 46%;
+}
+
+.map-road.side-b {
+  height: 20px;
+  right: 4%;
+  top: 28%;
+  transform: rotate(-18deg);
+  width: 42%;
+}
+
+.map-route-line {
+  background: linear-gradient(90deg, var(--blue), #16a36f);
+  height: 7px;
+  left: 27%;
+  top: 48%;
+  transform: rotate(-28deg);
+  transform-origin: left center;
+  width: 42%;
+  z-index: 2;
+}
+
+.map-pin {
+  align-items: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 12px 28px rgba(21, 32, 51, 0.18);
+  color: #fff;
+  display: inline-flex;
+  height: 46px;
+  justify-content: center;
+  position: absolute;
+  width: 46px;
+  z-index: 3;
+}
+
+.map-pin.pickup {
+  background: var(--blue);
+  left: 23%;
+  top: 54%;
+}
+
+.map-pin.dropoff {
+  background: var(--green);
+  right: 26%;
+  top: 31%;
+}
+
+.delivery-map-address {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(215, 230, 255, 0.94);
+  border-radius: 8px;
+  bottom: 14px;
+  box-shadow: 0 14px 36px rgba(21, 32, 51, 0.12);
+  display: grid;
+  gap: 4px;
+  left: 14px;
+  max-width: min(520px, calc(100% - 28px));
+  padding: 12px;
+  position: absolute;
+  z-index: 4;
+}
+
+.delivery-map-address span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.delivery-active-order {
+  display: grid;
 }
 
 .products-panel,
@@ -4618,6 +4850,7 @@
   .home-hero,
   .client-hero,
   .workspace-title,
+  .delivery-service-card,
   .order-card-footer,
   .delivery-card-footer,
   .performance-row,
@@ -4906,7 +5139,9 @@
 
   .button-row .action-button,
   .delivery-card-footer .action-button,
-  .cart-list .action-button {
+  .cart-list .action-button,
+  .delivery-service-card .action-button,
+  .delivery-service-confirm-actions .action-button {
     width: 100%;
   }
 }
