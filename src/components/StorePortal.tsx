@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -76,6 +76,34 @@ export function StorePortal({
   const [productSearch, setProductSearch] = useState('');
   const [activeView, setActiveView] = useState<StoreView>('dashboard');
   const [storeMenuOpen, setStoreMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!storeMenuOpen) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const previousStyles = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+
+    return () => {
+      body.style.overflow = previousStyles.overflow;
+      body.style.position = previousStyles.position;
+      body.style.top = previousStyles.top;
+      body.style.width = previousStyles.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [storeMenuOpen]);
   const [inventoryFabOpen, setInventoryFabOpen] = useState(false);
   const [productSheetOpen, setProductSheetOpen] = useState(false);
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
