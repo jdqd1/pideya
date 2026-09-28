@@ -73,7 +73,7 @@
 }
 
 .install-app-close {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.26);
   color: #fff;
   height: 40px;
@@ -4107,8 +4107,8 @@
 .auth-modal-backdrop {
   align-items: center;
   animation: auth-backdrop-in 200ms ease-out both;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.12);
   display: flex;
   justify-content: center;
@@ -4956,16 +4956,16 @@
 
   to {
     opacity: 1;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 
 @keyframes auth-backdrop-out {
   from {
     opacity: 1;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   to {
