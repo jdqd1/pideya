@@ -1387,7 +1387,7 @@ export function ClientPortal({
         )}
       </div>
 
-      <nav className={`mobile-bottom-nav nav-index-${activeBottomNavIndex}`} aria-label="Menu principal">
+      <nav className={`mobile-bottom-nav client-bottom-nav nav-index-${activeBottomNavIndex}`} aria-label="Menu principal">
         <span className="mobile-bottom-nav-indicator" aria-hidden="true" />
         <button
           className={clientView === 'home' ? 'active' : ''}
