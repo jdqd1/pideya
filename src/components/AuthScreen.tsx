@@ -209,16 +209,16 @@ export function AuthScreen({ mode, onBack, onComplete, onModeChange }: AuthScree
                 Las tiendas se registran directamente con administración para validar los datos del negocio.
               </p>
             </div>
-            <button
+            <a
               className="merchant-whatsapp-button"
-              disabled
-              title="Falta configurar el número de WhatsApp de administración"
-              type="button"
+              href="https://wa.me/584126655273?text=Hola%2C%20quisiera%20registrar%20mi%20comercio%20en%20PideYa.%20Me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20sobre%20el%20proceso%20de%20registro%20y%20los%20requisitos."
+              rel="noreferrer"
+              target="_blank"
             >
               <MessageCircle size={18} aria-hidden="true" />
               <span>Contactar administración por WhatsApp</span>
-            </button>
-            <small>Configura el número de administración para habilitar este acceso.</small>
+            </a>
+            <small>Te abriremos un chat con un mensaje preparado para solicitar el registro de tu comercio.</small>
           </section>
         ) : (
           <section className="auth-operator-access">
