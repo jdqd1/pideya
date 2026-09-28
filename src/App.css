@@ -187,6 +187,17 @@
   z-index: 40;
 }
 
+
+.app-entry-screen.closing {
+  animation: app-entry-screen-out 360ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+.app-shell.app-entering {
+  animation: app-main-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center top;
+}
+
 .app-entry-brand {
   align-items: center;
   animation: app-entry-brand-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -352,6 +363,31 @@
   }
 }
 
+
+@keyframes app-entry-screen-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+}
+
+@keyframes app-main-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 520px) {
   .app-entry-screen {
     padding-top: max(34px, env(safe-area-inset-top));
@@ -383,7 +419,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .app-entry-brand,
-  .app-entry-actions {
+  .app-entry-actions,
+  .app-entry-screen.closing,
+  .app-shell.app-entering {
     animation: none;
   }
 }
