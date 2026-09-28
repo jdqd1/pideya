@@ -143,7 +143,9 @@ function App() {
     setEntryScreenVisible(true);
   };
 
-  const updateCurrentUserProfile = (updates: Pick<AppUser, 'name' | 'phone'>) => {
+  const updateCurrentUserProfile = (
+    updates: Partial<Pick<AppUser, 'name' | 'phone' | 'savedAddresses'>>,
+  ) => {
     setCurrentUser((user) => (user ? { ...user, ...updates } : user));
   };
 
