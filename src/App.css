@@ -5081,6 +5081,18 @@
   color: var(--blue);
 }
 
+
+.register-role-panel button.active {
+  background: #eef4ff;
+  border-color: #bfd5ff;
+  box-shadow: 0 0 0 2px rgba(18, 104, 243, 0.08);
+  color: var(--blue-dark);
+}
+
+.register-role-panel button.active svg {
+  color: var(--blue);
+}
+
 .drawer-backdrop {
   background: rgba(15, 23, 42, 0.22);
 }
