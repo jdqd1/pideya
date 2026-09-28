@@ -4733,7 +4733,9 @@
   display: flex;
   inset: 0;
   justify-content: center;
+  overscroll-behavior: none;
   position: fixed;
+  touch-action: none;
   z-index: 51;
 }
 
@@ -4861,12 +4863,15 @@
 }
 
 .notification-sheet-list {
+  -webkit-overflow-scrolling: touch;
   align-content: start;
   display: grid;
   gap: 8px;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-top: 16px;
+  touch-action: pan-y;
 }
 
 .notification-sheet-list article {
