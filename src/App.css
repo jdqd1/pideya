@@ -3598,6 +3598,63 @@
   margin: 0;
 }
 
+
+.account-subsection-header {
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #e7edf4;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  min-height: 78px;
+  padding: 2px 2px 14px;
+}
+
+.account-subsection-back {
+  align-items: center;
+  background: #f3f6fb;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.account-subsection-header span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.account-subsection-header h2 {
+  color: var(--ink);
+  font-size: 1.22rem;
+  line-height: 1.05;
+  margin: 4px 0 0;
+}
+
+.account-view-enter {
+  animation: account-view-enter 180ms ease-out both;
+}
+
+@keyframes account-view-enter {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .account-summary-grid {
   display: grid;
   gap: 10px;
