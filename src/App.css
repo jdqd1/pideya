@@ -883,7 +883,8 @@
 
   .mobile-bottom-nav-indicator,
   .mobile-bottom-nav button > svg,
-  .home-promo-track {
+  .home-promo-track,
+  .account-sheet {
     transition: none;
   }
 
@@ -4769,7 +4770,15 @@
   max-width: 520px;
   overflow: hidden;
   padding: 18px 18px max(24px, env(safe-area-inset-bottom));
+  transition:
+    height 340ms cubic-bezier(0.16, 1, 0.3, 1),
+    max-height 340ms cubic-bezier(0.16, 1, 0.3, 1);
   width: min(100%, 520px);
+}
+
+.account-sheet.expanded-address-editor {
+  height: min(94dvh, 780px);
+  max-height: min(94dvh, 780px);
 }
 
 .account-sheet.closing {
