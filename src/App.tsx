@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Download, LayoutDashboard, LogIn, LogOut, Share2, UserPlus, X } from 'lucide-react';
+import { Bike, Download, LayoutDashboard, LogIn, LogOut, Share2, Store, UserPlus, X } from 'lucide-react';
 import './App.css';
 import pideyaLogo from './assets/pideya-logo.png';
 import { AdminPortal } from './components/AdminPortal';
@@ -48,6 +48,7 @@ function App() {
   const [managedStoreId, setManagedStoreId] = useState(initialStores[0].id);
   const [splashVisible, setSplashVisible] = useState(true);
   const [splashClosing, setSplashClosing] = useState(false);
+  const [entryScreenVisible, setEntryScreenVisible] = useState(true);
 
   const activeOrdersCount = useMemo(
     () => orders.filter((order) => !['delivered', 'cancelled'].includes(order.status)).length,
@@ -96,12 +97,40 @@ function App() {
     setActiveRole(user.role);
     setAuthMode(null);
     setDrawerOpen(false);
+    setEntryScreenVisible(false);
+  };
+
+  const enterTestRole = (role: Exclude<Role, 'admin'>) => {
+    const testUsers: Record<Exclude<Role, 'admin'>, AppUser> = {
+      client: {
+        id: 'test-client',
+        name: 'Usuario de prueba',
+        phone: '+58 412-555-0000',
+        role: 'client',
+        savedAddresses: ['Residencias Turia, Torre B', 'Oficina Torre Platinum, piso 4'],
+      },
+      delivery: {
+        id: 'test-delivery',
+        name: 'Delivery de prueba',
+        phone: '+58 412-555-0001',
+        role: 'delivery',
+      },
+      store: {
+        id: 'test-store',
+        name: 'Tienda de prueba',
+        phone: '+58 412-555-0002',
+        role: 'store',
+      },
+    };
+
+    handleAuthComplete(testUsers[role]);
   };
 
   const logout = () => {
     setCurrentUser(null);
     setActiveRole('client');
     setDrawerOpen(false);
+    setEntryScreenVisible(true);
   };
 
   const updateCurrentUserProfile = (updates: Pick<AppUser, 'name' | 'phone'>) => {
@@ -309,6 +338,54 @@ function App() {
         </div>
       ) : null}
 
+      {!splashVisible && entryScreenVisible ? (
+        <section className="app-entry-screen" aria-labelledby="app-entry-title">
+          <div className="app-entry-brand">
+            <div className="app-entry-logo-wrap">
+              <img src={pideyaLogo} alt="PideYa" />
+            </div>
+            <div>
+              <h1 id="app-entry-title">
+                Pide<span>Ya</span>
+              </h1>
+              <p>Todo lo que necesitas, más cerca de ti.</p>
+            </div>
+          </div>
+
+          <div className="app-entry-actions">
+            <button className="app-entry-button primary" onClick={() => setAuthMode('login')} type="button">
+              <LogIn size={20} aria-hidden="true" />
+              <span>Iniciar sesión</span>
+            </button>
+            <button className="app-entry-button secondary" onClick={() => setAuthMode('register')} type="button">
+              <UserPlus size={20} aria-hidden="true" />
+              <span>Registrarse</span>
+            </button>
+
+            <div className="app-entry-divider">
+              <span>Modo de prueba</span>
+            </div>
+
+            <button className="app-entry-button test" onClick={() => enterTestRole('client')} type="button">
+              Entrar como prueba
+            </button>
+
+            <div className="app-entry-role-links" aria-label="Accesos de prueba">
+              <button onClick={() => enterTestRole('delivery')} type="button">
+                <Bike size={17} aria-hidden="true" />
+                <span>Entrar como delivery</span>
+              </button>
+              <span aria-hidden="true">•</span>
+              <button onClick={() => enterTestRole('store')} type="button">
+                <Store size={17} aria-hidden="true" />
+                <span>Entrar como tienda</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {!entryScreenVisible ? (
       <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''} ${showInstallBanner ? 'install-banner-visible' : ''}`}>
       {showInstallBanner ? (
         <section className="install-app-banner" aria-label="Instalar PideYa">
@@ -439,14 +516,6 @@ function App() {
         user={currentUser}
       />
 
-      {authMode ? (
-        <AuthModal
-          mode={authMode}
-          onClose={() => setAuthMode(null)}
-          onComplete={handleAuthComplete}
-        />
-      ) : null}
-
       {installHelpOpen ? (
         <div className="install-help-backdrop" role="presentation" onClick={() => setInstallHelpOpen(false)}>
           <section
@@ -475,6 +544,15 @@ function App() {
         </div>
       ) : null}
       </main>
+      ) : null}
+
+      {authMode ? (
+        <AuthModal
+          mode={authMode}
+          onClose={() => setAuthMode(null)}
+          onComplete={handleAuthComplete}
+        />
+      ) : null}
     </>
   );
 }
