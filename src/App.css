@@ -1326,9 +1326,10 @@
 }
 
 .featured-price-row {
-  align-items: baseline;
-  display: flex;
-  gap: 12px;
+  align-items: start;
+  display: grid;
+  gap: 2px;
+  justify-items: start;
 }
 
 .featured-price-row strong {
@@ -1358,9 +1359,9 @@
 
 .featured-deal-card .featured-quantity-control.product-add-button {
   cursor: pointer;
-  gap: 16px;
-  justify-content: center;
-  padding: 0 28px;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 0 7px 0 22px;
 }
 
 .featured-deal-card .featured-quantity-control.product-add-button::before {
@@ -1427,10 +1428,8 @@
   color: #071633;
   display: inline-flex;
   flex-direction: column;
-  font-size: 1.75rem;
   height: 92px;
   justify-content: center;
-  line-height: 0.95;
   position: absolute;
   right: 32px;
   top: 30px;
@@ -1438,8 +1437,22 @@
   z-index: 3;
 }
 
-.featured-deal-card > b small {
-  font-size: 0.9rem;
+.featured-discount-badge > span {
+  display: block;
+  font-size: 1.9rem;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  white-space: nowrap;
+}
+
+.featured-discount-badge > small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin-top: 5px;
 }
 
 .store-spotlight-card {
@@ -6348,7 +6361,7 @@
   }
 
   .featured-price-row {
-    gap: 8px;
+    gap: 1px;
   }
 
   .featured-price-row strong {
@@ -6366,8 +6379,8 @@
   }
 
   .featured-deal-card .featured-quantity-control.product-add-button {
-    gap: 9px;
-    padding: 0 13px;
+    gap: 8px;
+    padding: 0 5px 0 13px;
   }
 
   .featured-deal-card .featured-quantity-control.product-quantity-control {
@@ -6395,15 +6408,21 @@
   }
 
   .featured-deal-card > b {
-    font-size: 1.16rem;
     height: 62px;
     right: 12px;
     top: 15px;
     width: 62px;
   }
 
-  .featured-deal-card > b small {
-    font-size: 0.62rem;
+  .featured-discount-badge > span {
+    font-size: 1.35rem;
+    line-height: 0.88;
+  }
+
+  .featured-discount-badge > small {
+    font-size: 0.5rem;
+    letter-spacing: 0.07em;
+    margin-top: 3px;
   }
 
   .store-spotlight-card {
