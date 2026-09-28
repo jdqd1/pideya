@@ -853,6 +853,7 @@
   .auth-screen,
   .auth-screen.closing,
   .app-shell.app-entering,
+  .client-bottom-nav,
   .mobile-bottom-nav button.active > svg {
     animation: none;
   }
@@ -4489,6 +4490,27 @@
   transform: translateX(-50%);
   width: min(calc(100% - 28px), 520px);
   z-index: 34;
+}
+
+.client-bottom-nav {
+  animation: client-bottom-nav-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes client-bottom-nav-enter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 26px);
+  }
+
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -3px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .mobile-bottom-nav-indicator {
