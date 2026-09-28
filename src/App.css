@@ -532,6 +532,7 @@
   border: 1px solid #cdeedb;
   border-radius: 16px;
   color: #16815d;
+  cursor: pointer;
   display: inline-flex;
   font-weight: 900;
   gap: 8px;
@@ -539,11 +540,7 @@
   justify-content: center;
   min-height: 50px;
   padding: 0 14px;
-}
-
-.merchant-whatsapp-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
+  text-decoration: none;
 }
 
 .merchant-registration-card small {
