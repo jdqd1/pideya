@@ -22,6 +22,7 @@ import {
   IceCreamBowl,
   LogIn,
   LogOut,
+  LocateFixed,
   MapPin,
   Minus,
   Plus,
@@ -47,6 +48,30 @@ type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops' | 'ba
 type ClientView = 'home' | 'restaurants';
 type DeliveryLocationId = 'home' | 'work' | 'current';
 type AccountSection = 'menu' | 'edit' | 'history' | 'addresses' | 'address-edit' | 'favorites';
+
+interface AddressForm {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  reference: string;
+  latitude: string;
+  longitude: string;
+}
+
+const emptyAddressForm: AddressForm = {
+  street: '',
+  number: '',
+  neighborhood: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  reference: '',
+  latitude: '',
+  longitude: '',
+};
 
 const initialClientNotifications = [
   {
@@ -273,8 +298,10 @@ export function ClientPortal({
     return addresses;
   });
   const [editingAddressIndex, setEditingAddressIndex] = useState(0);
-  const [editingAddressValue, setEditingAddressValue] = useState('');
+  const [editingAddressForm, setEditingAddressForm] = useState<AddressForm>(emptyAddressForm);
   const [addressSaved, setAddressSaved] = useState(false);
+  const [addressDetecting, setAddressDetecting] = useState(false);
+  const [addressDetectionMessage, setAddressDetectionMessage] = useState('');
   const [cartCountPulse, setCartCountPulse] = useState(false);
   const previousCartItemsCount = useRef(0);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -711,23 +738,121 @@ export function ClientPortal({
 
   const openAddressEditor = (index: number) => {
     setEditingAddressIndex(index);
-    setEditingAddressValue(profileAddresses[index] ?? '');
+    setEditingAddressForm({
+      ...emptyAddressForm,
+      street: profileAddresses[index] ?? '',
+    });
     setAddressSaved(false);
+    setAddressDetectionMessage('');
     setAccountSection('address-edit');
   };
 
-  const saveAddress = () => {
-    const nextAddress = editingAddressValue.trim();
+  const updateAddressField = (field: keyof AddressForm, value: string) => {
+    setEditingAddressForm((current) => ({ ...current, [field]: value }));
+    setAddressSaved(false);
+  };
 
-    if (!nextAddress) {
+  const saveAddress = () => {
+    const { street, number, neighborhood, city, state, postalCode, reference } = editingAddressForm;
+
+    if (!street.trim() || !city.trim() || !state.trim()) {
       return;
     }
+
+    const nextAddress = [
+      [street.trim(), number.trim()].filter(Boolean).join(' '),
+      neighborhood.trim(),
+      city.trim(),
+      state.trim(),
+      postalCode.trim(),
+      reference.trim() ? `Ref: ${reference.trim()}` : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
 
     const nextAddresses = [...profileAddresses];
     nextAddresses[editingAddressIndex] = nextAddress;
     setProfileAddresses(nextAddresses);
     onUpdateProfile({ savedAddresses: nextAddresses });
     setAddressSaved(true);
+  };
+
+  const detectCurrentAddress = () => {
+    if (!navigator.geolocation) {
+      setAddressDetectionMessage('Tu navegador no permite detectar la ubicación.');
+      return;
+    }
+
+    setAddressDetecting(true);
+    setAddressDetectionMessage('');
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const latitude = coords.latitude.toFixed(6);
+        const longitude = coords.longitude.toFixed(6);
+
+        setEditingAddressForm((current) => ({
+          ...current,
+          latitude,
+          longitude,
+        }));
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords.latitude}&lon=${coords.longitude}&zoom=18&addressdetails=1&accept-language=es`,
+          );
+
+          if (!response.ok) {
+            throw new Error('reverse-geocode-failed');
+          }
+
+          const result = await response.json();
+          const address = result.address ?? {};
+
+          setEditingAddressForm((current) => ({
+            ...current,
+            street:
+              address.road ??
+              address.pedestrian ??
+              address.residential ??
+              address.footway ??
+              current.street,
+            number: address.house_number ?? current.number,
+            neighborhood:
+              address.neighbourhood ??
+              address.suburb ??
+              address.quarter ??
+              current.neighborhood,
+            city:
+              address.city ??
+              address.town ??
+              address.village ??
+              address.municipality ??
+              current.city,
+            state: address.state ?? address.region ?? current.state,
+            postalCode: address.postcode ?? current.postalCode,
+            latitude,
+            longitude,
+          }));
+          setAddressDetectionMessage('Ubicación detectada. Revisa los datos antes de guardar.');
+        } catch {
+          setAddressDetectionMessage(
+            'Detectamos tus coordenadas, pero no pudimos completar todos los campos automáticamente.',
+          );
+        } finally {
+          setAddressDetecting(false);
+        }
+      },
+      () => {
+        setAddressDetecting(false);
+        setAddressDetectionMessage('No pudimos acceder a tu ubicación. Revisa el permiso del navegador.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    );
   };
 
   const closeNotifications = () => {
@@ -1658,19 +1783,119 @@ export function ClientPortal({
                   </div>
                 </div>
 
-                <div className="account-form-field">
-                  <label htmlFor="address-value">Dirección</label>
-                  <textarea
-                    id="address-value"
-                    onChange={(event) => {
-                      setEditingAddressValue(event.target.value);
-                      setAddressSaved(false);
-                    }}
-                    placeholder="Escribe la dirección completa"
-                    rows={4}
-                    value={editingAddressValue}
-                  />
+                <button
+                  className="account-detect-location"
+                  disabled={addressDetecting}
+                  onClick={detectCurrentAddress}
+                  type="button"
+                >
+                  <LocateFixed size={19} aria-hidden="true" />
+                  <span>{addressDetecting ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}</span>
+                </button>
+
+                {addressDetectionMessage ? (
+                  <p className="account-location-message">{addressDetectionMessage}</p>
+                ) : null}
+
+                <div className="account-address-form-grid">
+                  <div className="account-form-field address-field-wide">
+                    <label htmlFor="address-street">Calle o avenida</label>
+                    <input
+                      id="address-street"
+                      onChange={(event) => updateAddressField('street', event.target.value)}
+                      placeholder="Ej. Av. Principal"
+                      value={editingAddressForm.street}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-number">Número / casa</label>
+                    <input
+                      id="address-number"
+                      onChange={(event) => updateAddressField('number', event.target.value)}
+                      placeholder="Ej. 24-B"
+                      value={editingAddressForm.number}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-neighborhood">Sector / urbanización</label>
+                    <input
+                      id="address-neighborhood"
+                      onChange={(event) => updateAddressField('neighborhood', event.target.value)}
+                      placeholder="Ej. La Floresta"
+                      value={editingAddressForm.neighborhood}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-city">Ciudad</label>
+                    <input
+                      id="address-city"
+                      onChange={(event) => updateAddressField('city', event.target.value)}
+                      placeholder="Ciudad"
+                      value={editingAddressForm.city}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-state">Estado / región</label>
+                    <input
+                      id="address-state"
+                      onChange={(event) => updateAddressField('state', event.target.value)}
+                      placeholder="Estado"
+                      value={editingAddressForm.state}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-postal">Código postal</label>
+                    <input
+                      id="address-postal"
+                      inputMode="numeric"
+                      onChange={(event) => updateAddressField('postalCode', event.target.value)}
+                      placeholder="Código postal"
+                      value={editingAddressForm.postalCode}
+                    />
+                  </div>
+
+                  <div className="account-form-field address-field-wide">
+                    <label htmlFor="address-reference">Punto de referencia</label>
+                    <textarea
+                      id="address-reference"
+                      onChange={(event) => updateAddressField('reference', event.target.value)}
+                      placeholder="Ej. edificio azul frente a la plaza"
+                      rows={3}
+                      value={editingAddressForm.reference}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-latitude">Latitud</label>
+                    <input
+                      id="address-latitude"
+                      inputMode="decimal"
+                      onChange={(event) => updateAddressField('latitude', event.target.value)}
+                      placeholder="Automático"
+                      value={editingAddressForm.latitude}
+                    />
+                  </div>
+
+                  <div className="account-form-field">
+                    <label htmlFor="address-longitude">Longitud</label>
+                    <input
+                      id="address-longitude"
+                      inputMode="decimal"
+                      onChange={(event) => updateAddressField('longitude', event.target.value)}
+                      placeholder="Automático"
+                      value={editingAddressForm.longitude}
+                    />
+                  </div>
                 </div>
+
+                <p className="account-address-helper">
+                  Calle, ciudad, estado y código postal ayudan a ubicar la dirección con mayor precisión en mapas.
+                </p>
 
                 {addressSaved ? (
                   <p className="account-success-message">Dirección actualizada correctamente.</p>
@@ -1678,7 +1903,11 @@ export function ClientPortal({
 
                 <button
                   className="account-primary-button"
-                  disabled={!editingAddressValue.trim()}
+                  disabled={
+                    !editingAddressForm.street.trim() ||
+                    !editingAddressForm.city.trim() ||
+                    !editingAddressForm.state.trim()
+                  }
                   onClick={saveAddress}
                   type="button"
                 >
