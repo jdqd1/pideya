@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   BadgePercent,
@@ -228,6 +228,34 @@ export function ClientPortal({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Pago simulado');
   const [checkoutError, setCheckoutError] = useState('');
   const [lastOrderId, setLastOrderId] = useState('');
+
+  useEffect(() => {
+    if (!cartOpen && !accountOpen) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const previousStyles = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+
+    return () => {
+      body.style.overflow = previousStyles.overflow;
+      body.style.position = previousStyles.position;
+      body.style.top = previousStyles.top;
+      body.style.width = previousStyles.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [cartOpen, accountOpen]);
 
   const activeRestaurantStore = activeRestaurantStoreId
     ? stores.find((store) => store.id === activeRestaurantStoreId) ?? null
