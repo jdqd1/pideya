@@ -73,22 +73,6 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
           </button>
         </div>
 
-        {isRegister ? (
-          <div className="role-picker" role="group" aria-label="Tipo de usuario">
-            {roles.map(({ role, label, icon: Icon }) => (
-              <button
-                className={selectedRole === role ? 'active' : ''}
-                key={role}
-                onClick={() => setSelectedRole(role)}
-                type="button"
-              >
-                <Icon size={17} aria-hidden="true" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-
         <div className="auth-fields">
           {isRegister ? (
             <input
@@ -145,6 +129,25 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
         <ActionButton icon={LockKeyhole} onClick={() => submitAuth()} variant="primary">
           {isRegister ? 'Registrarme' : 'Entrar'}
         </ActionButton>
+
+        {isRegister ? (
+          <div className="operator-login-panel register-role-panel" role="group" aria-label="Tipo de usuario">
+            <span>Tipo de cuenta</span>
+            <div>
+              {roles.map(({ role, label, icon: Icon }) => (
+                <button
+                  className={selectedRole === role ? 'active' : ''}
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  type="button"
+                >
+                  <Icon size={16} aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {!isRegister ? (
           <div className="operator-login-panel">
