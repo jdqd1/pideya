@@ -49,6 +49,8 @@ function App() {
   const [splashVisible, setSplashVisible] = useState(true);
   const [splashClosing, setSplashClosing] = useState(false);
   const [entryScreenVisible, setEntryScreenVisible] = useState(true);
+  const [entryScreenClosing, setEntryScreenClosing] = useState(false);
+  const [appEntering, setAppEntering] = useState(false);
 
   const activeOrdersCount = useMemo(
     () => orders.filter((order) => !['delivered', 'cancelled'].includes(order.status)).length,
@@ -97,7 +99,17 @@ function App() {
     setActiveRole(user.role);
     setAuthMode(null);
     setDrawerOpen(false);
-    setEntryScreenVisible(false);
+    setEntryScreenClosing(true);
+
+    window.setTimeout(() => {
+      setEntryScreenVisible(false);
+      setEntryScreenClosing(false);
+      setAppEntering(true);
+
+      window.setTimeout(() => {
+        setAppEntering(false);
+      }, 520);
+    }, 360);
   };
 
   const enterTestRole = (role: Exclude<Role, 'admin'>) => {
@@ -130,6 +142,8 @@ function App() {
     setCurrentUser(null);
     setActiveRole('client');
     setDrawerOpen(false);
+    setAppEntering(false);
+    setEntryScreenClosing(false);
     setEntryScreenVisible(true);
   };
 
@@ -339,7 +353,10 @@ function App() {
       ) : null}
 
       {!splashVisible && entryScreenVisible ? (
-        <section className="app-entry-screen" aria-labelledby="app-entry-title">
+        <section
+          className={`app-entry-screen ${entryScreenClosing ? 'closing' : ''}`.trim()}
+          aria-labelledby="app-entry-title"
+        >
           <div className="app-entry-brand">
             <div className="app-entry-logo-wrap">
               <img src={pideyaLogo} alt="PideYa" />
@@ -386,7 +403,7 @@ function App() {
       ) : null}
 
       {!entryScreenVisible ? (
-      <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''} ${showInstallBanner ? 'install-banner-visible' : ''}`}>
+      <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''} ${showInstallBanner ? 'install-banner-visible' : ''} ${appEntering ? 'app-entering' : ''}`.trim()}>
       {showInstallBanner ? (
         <section className="install-app-banner" aria-label="Instalar PideYa">
           <div>
