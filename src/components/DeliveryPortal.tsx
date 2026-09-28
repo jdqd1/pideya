@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
-  BarChart3,
   Bike,
   CheckCircle2,
   ChevronRight,
@@ -467,14 +466,6 @@ export function DeliveryPortal({
                 <span>
                   <strong>Historial</strong>
                   <small>Entregas completadas</small>
-                </span>
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-              <button onClick={() => navigateDeliverySection('earnings')} type="button">
-                <BarChart3 size={20} aria-hidden="true" />
-                <span>
-                  <strong>Resumen de ganancias</strong>
-                  <small>{formatCurrency(activeDelivery?.earningsToday ?? 0)} hoy</small>
                 </span>
                 <ChevronRight size={20} aria-hidden="true" />
               </button>
