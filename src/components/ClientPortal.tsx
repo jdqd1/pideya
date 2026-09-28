@@ -1593,7 +1593,7 @@ export function ClientPortal({
         >
           <section
             aria-labelledby="account-sheet-title"
-            className={`account-sheet ${accountClosing ? 'closing' : ''}`.trim()}
+            className={`account-sheet ${accountSection === 'address-edit' ? 'expanded-address-editor' : ''} ${accountClosing ? 'closing' : ''}`.trim()}
             onClick={(event) => event.stopPropagation()}
             role="dialog"
           >
