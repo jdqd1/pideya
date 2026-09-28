@@ -92,6 +92,10 @@ function App() {
     setDrawerOpen(false);
   };
 
+  const updateCurrentUserProfile = (updates: Pick<AppUser, 'name' | 'phone'>) => {
+    setCurrentUser((user) => (user ? { ...user, ...updates } : user));
+  };
+
   const dismissInstallBanner = () => {
     setInstallBannerDismissed(true);
     setInstallHelpOpen(false);
@@ -349,6 +353,7 @@ function App() {
           onOpenLogin={() => setAuthMode('login')}
           onOpenRegister={() => setAuthMode('register')}
           onLogout={logout}
+          onUpdateProfile={updateCurrentUserProfile}
           onClearCart={clearCart}
           onRemoveCartItem={removeCartItem}
           onSelectStore={setSelectedStoreId}
