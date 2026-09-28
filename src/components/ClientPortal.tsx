@@ -185,7 +185,7 @@ const homePromoBanners = [
 
 const primaryFoodFilters: FoodFilter[] = [
   { value: 'Todas', label: 'Todos', icon: Grid2x2, tone: 'blue' },
-  { value: 'Burgers', label: 'Hamburguesas', icon: Beef, tone: 'amber' },
+  { value: 'Burgers', label: 'Burgers', icon: Beef, tone: 'amber' },
   { value: 'Arepas', label: 'Arepas', icon: Utensils, tone: 'green' },
   { value: 'Sushi', label: 'Asiatica', icon: Soup, tone: 'coral' },
   { value: 'Bebidas', label: 'Bebidas', icon: CupSoda, tone: 'mint' },
@@ -246,6 +246,8 @@ export function ClientPortal({
   const [clientView, setClientView] = useState<ClientView>('home');
   const [query, setQuery] = useState('');
   const [foodType, setFoodType] = useState('Todas');
+  const [exploreCategoryLoading, setExploreCategoryLoading] = useState(false);
+  const exploreCategoryTimer = useRef<number | null>(null);
   const [categoryKey, setCategoryKey] = useState<CategoryKey>('all');
   const [showMoreFoodTypes, setShowMoreFoodTypes] = useState(false);
   const [homePromoIndex, setHomePromoIndex] = useState(0);
@@ -575,6 +577,38 @@ export function ClientPortal({
             : categoryKey === 'desserts'
               ? 'Postres'
               : 'Comida';
+
+  const selectFoodType = (nextFoodType: string) => {
+    if (nextFoodType === foodType || exploreCategoryLoading) {
+      return;
+    }
+
+    setExploreCategoryLoading(true);
+
+    if (exploreCategoryTimer.current) {
+      window.clearTimeout(exploreCategoryTimer.current);
+    }
+
+    exploreCategoryTimer.current = window.setTimeout(() => {
+      setFoodType(nextFoodType);
+      setActiveRestaurantStoreId(null);
+
+      window.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          setExploreCategoryLoading(false);
+          exploreCategoryTimer.current = null;
+        }, 90);
+      });
+    }, 260);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (exploreCategoryTimer.current) {
+        window.clearTimeout(exploreCategoryTimer.current);
+      }
+    };
+  }, []);
 
   const selectCategory = (key: CategoryKey) => {
     setClientView('restaurants');
@@ -1114,7 +1148,10 @@ export function ClientPortal({
             </section>
           </>
         ) : (
-          <section className="restaurant-app-page" aria-labelledby="restaurant-page-title">
+          <section
+            className={`restaurant-app-page ${exploreCategoryLoading ? 'explore-category-loading' : ''}`.trim()}
+            aria-labelledby="restaurant-page-title"
+          >
             <div className="restaurant-topbar">
               <button aria-label="Volver al inicio" className="restaurant-back-button" onClick={returnHome} type="button">
                 <ArrowLeft size={28} aria-hidden="true" />
@@ -1135,7 +1172,7 @@ export function ClientPortal({
                 <button
                   className={foodType === value ? `food-type-button active tone-${tone}` : `food-type-button tone-${tone}`}
                   key={value}
-                  onClick={() => setFoodType(value)}
+                  onClick={() => selectFoodType(value)}
                   type="button"
                 >
                   <span>
@@ -1159,6 +1196,13 @@ export function ClientPortal({
             </nav>
 
             <div id="restaurant-focus" />
+
+            {exploreCategoryLoading ? (
+              <div className="explore-category-loader" role="status" aria-live="polite">
+                <span className="explore-loader-ring" aria-hidden="true" />
+                <strong>Cargando opciones...</strong>
+              </div>
+            ) : null}
 
             {activeRestaurantStore ? (
               <article className="store-spotlight-card">
