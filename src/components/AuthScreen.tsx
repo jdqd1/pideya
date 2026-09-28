@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   Bike,
@@ -51,6 +51,10 @@ export function AuthScreen({ mode, onBack, onComplete, onModeChange }: AuthScree
     () => registerRoles.find(({ role }) => role === selectedRole)?.label ?? 'Cliente',
     [selectedRole],
   );
+
+  useEffect(() => {
+    setClosing(false);
+  }, [mode]);
 
   const closeScreen = () => {
     if (closing) return;
