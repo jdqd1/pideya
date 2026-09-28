@@ -3466,6 +3466,24 @@
   padding: 10px;
 }
 
+
+.notification-sheet-list article.clearing {
+  animation: notification-domino-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+@keyframes notification-domino-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
 .notification-sheet-list article > span {
   align-items: center;
   background: #eef4ff;
