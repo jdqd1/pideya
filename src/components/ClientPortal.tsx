@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
   ArrowLeft,
   BadgePercent,
@@ -229,6 +229,8 @@ export function ClientPortal({
   const [profileName, setProfileName] = useState(currentUser?.name ?? '');
   const [profilePhone, setProfilePhone] = useState(currentUser?.phone ?? '');
   const [profileSaved, setProfileSaved] = useState(false);
+  const [cartCountPulse, setCartCountPulse] = useState(false);
+  const previousCartItemsCount = useRef(0);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -467,6 +469,26 @@ export function ClientPortal({
     : 0;
   const total = subtotal + deliveryFee;
   const cartItemsCount = cartProducts.reduce((sum, item) => sum + item.quantity, 0);
+
+  useEffect(() => {
+    const previousCount = previousCartItemsCount.current;
+
+    if (previousCount > 0 && cartItemsCount > 0 && cartItemsCount !== previousCount) {
+      setCartCountPulse(false);
+      window.requestAnimationFrame(() => {
+        setCartCountPulse(true);
+      });
+
+      const pulseTimer = window.setTimeout(() => {
+        setCartCountPulse(false);
+      }, 320);
+
+      previousCartItemsCount.current = cartItemsCount;
+      return () => window.clearTimeout(pulseTimer);
+    }
+
+    previousCartItemsCount.current = cartItemsCount;
+  }, [cartItemsCount]);
   const getProductCartQuantity = (productId: string) =>
     cart.find((item) => item.productId === productId)?.quantity ?? 0;
   const deliveryLocations = [
@@ -1215,7 +1237,9 @@ export function ClientPortal({
         >
           <ShoppingCart size={21} aria-hidden="true" />
           <span>Carrito</span>
-          {cartItemsCount ? <strong>{cartItemsCount}</strong> : null}
+          {cartItemsCount ? (
+            <strong className={cartCountPulse ? 'cart-count-pulse' : ''}>{cartItemsCount}</strong>
+          ) : null}
         </button>
         <button
           className={accountOpen ? 'active' : ''}
@@ -1522,7 +1546,13 @@ export function ClientPortal({
         <button className="cart-launcher" onClick={() => setCartOpen(true)} type="button">
           <ShoppingCart size={18} aria-hidden="true" />
           <span>Ver carrito</span>
-          <strong>{cartItemsCount} | {formatCurrency(total)}</strong>
+          <strong>
+            <span className={`cart-launcher-count ${cartCountPulse ? 'cart-count-pulse' : ''}`.trim()}>
+              {cartItemsCount}
+            </span>
+            <span aria-hidden="true"> | </span>
+            {formatCurrency(total)}
+          </strong>
           <ChevronUp size={17} aria-hidden="true" />
         </button>
       ) : null}
