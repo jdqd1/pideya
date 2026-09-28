@@ -421,8 +421,14 @@
   .app-entry-brand,
   .app-entry-actions,
   .app-entry-screen.closing,
-  .app-shell.app-entering {
+  .app-shell.app-entering,
+  .mobile-bottom-nav button.active > svg {
     animation: none;
+  }
+
+  .mobile-bottom-nav-indicator,
+  .mobile-bottom-nav button > svg {
+    transition: none;
   }
 }
 
@@ -3602,6 +3608,7 @@
 }
 
 .mobile-bottom-nav {
+  --nav-cell-width: calc((100% - 32px) / 4);
   align-items: center;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(212, 222, 236, 0.92);
@@ -3621,6 +3628,23 @@
   z-index: 34;
 }
 
+.mobile-bottom-nav-indicator {
+  background: var(--blue);
+  border-radius: 999px;
+  box-shadow: 0 7px 16px rgba(18, 104, 243, 0.24);
+  height: 38px;
+  left: calc(10px + (var(--nav-cell-width) - 38px) / 2);
+  pointer-events: none;
+  position: absolute;
+  top: 7px;
+  transform: translateX(calc(var(--nav-index) * (var(--nav-cell-width) + 4px)));
+  transition:
+    transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms ease;
+  width: 38px;
+  z-index: 0;
+}
+
 .mobile-bottom-nav button {
   align-items: center;
   background: transparent;
@@ -3637,11 +3661,25 @@
   min-width: 0;
   padding: 7px 4px;
   position: relative;
+  z-index: 1;
+}
+
+.mobile-bottom-nav button > svg {
+  position: relative;
+  transition:
+    color 220ms ease,
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
 }
 
 .mobile-bottom-nav button.active {
-  background: #eef4ff;
+  background: transparent;
   color: var(--blue);
+}
+
+.mobile-bottom-nav button.active > svg {
+  animation: bottom-nav-icon-pop 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  color: #fff;
 }
 
 .mobile-bottom-nav button strong {
@@ -3668,6 +3706,21 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+}
+
+
+@keyframes bottom-nav-icon-pop {
+  0% {
+    transform: scale(0.9);
+  }
+
+  62% {
+    transform: scale(1.16);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .store-bottom-nav {
