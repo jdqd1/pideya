@@ -3676,20 +3676,36 @@
 }
 
 .mobile-bottom-nav-indicator {
-  background: var(--blue);
-  border-radius: 999px;
-  box-shadow: 0 7px 16px rgba(18, 104, 243, 0.24);
-  height: 38px;
-  left: calc(10px + (var(--nav-cell-width) - 38px) / 2);
+  background: #eef4ff;
+  border: 1px solid rgba(18, 104, 243, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 7px 18px rgba(18, 104, 243, 0.10);
+  height: 56px;
+  left: 10px;
   pointer-events: none;
   position: absolute;
-  top: 7px;
-  transform: translateX(calc(var(--nav-index) * (var(--nav-cell-width) + 4px)));
+  top: 9px;
   transition:
-    transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 220ms ease;
-  width: 38px;
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 340ms cubic-bezier(0.16, 1, 0.3, 1);
+  width: var(--nav-cell-width);
   z-index: 0;
+}
+
+.mobile-bottom-nav.nav-index-0 .mobile-bottom-nav-indicator {
+  transform: translateX(0);
+}
+
+.mobile-bottom-nav.nav-index-1 .mobile-bottom-nav-indicator {
+  transform: translateX(calc(100% + 4px));
+}
+
+.mobile-bottom-nav.nav-index-2 .mobile-bottom-nav-indicator {
+  transform: translateX(calc(200% + 8px));
+}
+
+.mobile-bottom-nav.nav-index-3 .mobile-bottom-nav-indicator {
+  transform: translateX(calc(300% + 12px));
 }
 
 .mobile-bottom-nav button {
@@ -3726,7 +3742,7 @@
 
 .mobile-bottom-nav button.active > svg {
   animation: bottom-nav-icon-pop 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  color: #fff;
+  color: var(--blue);
 }
 
 .mobile-bottom-nav button strong {
