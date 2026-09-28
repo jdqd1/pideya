@@ -1241,7 +1241,7 @@ export function ClientPortal({
             </div>
 
             {accountSection === 'menu' ? (
-              <>
+              <div className="account-section-content">
                 <div className="account-summary-grid">
                   <span>
                     <strong>{customerOrders.length}</strong>
@@ -1284,7 +1284,7 @@ export function ClientPortal({
                     <ChevronRight size={20} aria-hidden="true" />
                   </button>
                 </div>
-              </>
+              </div>
             ) : null}
 
             {accountSection === 'edit' ? (
