@@ -3,7 +3,7 @@ import { Bike, Download, LayoutDashboard, LogIn, LogOut, Share2, Store, UserPlus
 import './App.css';
 import pideyaLogo from './assets/pideya-logo.png';
 import { AdminPortal } from './components/AdminPortal';
-import { AuthModal } from './components/AuthModal';
+import { AuthScreen } from './components/AuthScreen';
 import { ClientPortal } from './components/ClientPortal';
 import { DeliveryPortal } from './components/DeliveryPortal';
 import { RoleDrawer } from './components/RoleDrawer';
@@ -99,17 +99,13 @@ function App() {
     setActiveRole(user.role);
     setAuthMode(null);
     setDrawerOpen(false);
-    setEntryScreenClosing(true);
+    setEntryScreenVisible(false);
+    setEntryScreenClosing(false);
+    setAppEntering(true);
 
     window.setTimeout(() => {
-      setEntryScreenVisible(false);
-      setEntryScreenClosing(false);
-      setAppEntering(true);
-
-      window.setTimeout(() => {
-        setAppEntering(false);
-      }, 520);
-    }, 360);
+      setAppEntering(false);
+    }, 520);
   };
 
   const enterTestRole = (role: Exclude<Role, 'admin'>) => {
@@ -352,7 +348,7 @@ function App() {
         </div>
       ) : null}
 
-      {!splashVisible && entryScreenVisible ? (
+      {!splashVisible && entryScreenVisible && !authMode ? (
         <section
           className={`app-entry-screen ${entryScreenClosing ? 'closing' : ''}`.trim()}
           aria-labelledby="app-entry-title"
@@ -563,11 +559,12 @@ function App() {
       </main>
       ) : null}
 
-      {authMode ? (
-        <AuthModal
+      {!splashVisible && entryScreenVisible && authMode ? (
+        <AuthScreen
           mode={authMode}
-          onClose={() => setAuthMode(null)}
+          onBack={() => setAuthMode(null)}
           onComplete={handleAuthComplete}
+          onModeChange={setAuthMode}
         />
       ) : null}
     </>
