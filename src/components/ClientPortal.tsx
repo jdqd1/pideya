@@ -594,7 +594,7 @@ export function ClientPortal({
     window.setTimeout(() => {
       setNotificationsOpen(false);
       setNotificationsClosing(false);
-    }, 240);
+    }, 300);
   };
 
   const submitOrder = () => {
