@@ -46,6 +46,8 @@ function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState(initialStores[0].id);
   const [managedStoreId, setManagedStoreId] = useState(initialStores[0].id);
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashClosing, setSplashClosing] = useState(false);
 
   const activeOrdersCount = useMemo(
     () => orders.filter((order) => !['delivered', 'cancelled'].includes(order.status)).length,
@@ -54,6 +56,16 @@ function App() {
   const isClientShell = activeRole === 'client';
   const showTopbar = activeRole !== 'client' && activeRole !== 'store' && activeRole !== 'delivery';
   const showInstallBanner = !standaloneMode && !installBannerDismissed;
+
+  useEffect(() => {
+    const closingTimer = window.setTimeout(() => setSplashClosing(true), 1350);
+    const hideTimer = window.setTimeout(() => setSplashVisible(false), 1700);
+
+    return () => {
+      window.clearTimeout(closingTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, []);
 
   useEffect(() => {
     const displayModeQuery = window.matchMedia('(display-mode: standalone)');
@@ -280,7 +292,24 @@ function App() {
   };
 
   return (
-    <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''} ${showInstallBanner ? 'install-banner-visible' : ''}`}>
+    <>
+      {splashVisible ? (
+        <div
+          aria-label="Cargando PideYa"
+          className={`app-splash ${splashClosing ? 'closing' : ''}`.trim()}
+          role="status"
+        >
+          <div className="app-splash-glow" aria-hidden="true" />
+          <div className="app-splash-logo-wrap">
+            <img className="app-splash-logo" src={pideyaLogo} alt="" />
+          </div>
+          <strong className="app-splash-name">
+            Pide<span>Ya</span>
+          </strong>
+        </div>
+      ) : null}
+
+      <main className={`app-shell ${isClientShell ? 'public-client-shell' : ''} ${showInstallBanner ? 'install-banner-visible' : ''}`}>
       {showInstallBanner ? (
         <section className="install-app-banner" aria-label="Instalar PideYa">
           <div>
@@ -445,7 +474,8 @@ function App() {
           </section>
         </div>
       ) : null}
-    </main>
+      </main>
+    </>
   );
 }
 
