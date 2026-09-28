@@ -1213,32 +1213,47 @@ export function ClientPortal({
             onClick={(event) => event.stopPropagation()}
             role="dialog"
           >
-            <div className="account-profile-card">
-              <button
-                aria-label={accountSection === 'menu' ? 'Cerrar cuenta' : 'Volver al perfil'}
-                className="account-close-button"
-                onClick={accountSection === 'menu' ? closeAccount : () => setAccountSection('menu')}
-                type="button"
-              >
-                <ArrowLeft size={24} aria-hidden="true" />
-              </button>
-              <SafeImage className="account-avatar" src={defaultClientPhoto} alt="" />
-              <div>
-                <span>{accountSection === 'menu' ? 'Perfil del cliente' : 'Mi cuenta'}</span>
-                <h2 id="account-sheet-title">
-                  {accountSection === 'menu'
-                    ? currentUser.name
-                    : accountSection === 'edit'
+            {accountSection === 'menu' ? (
+              <div className="account-profile-card account-view-enter">
+                <button
+                  aria-label="Cerrar cuenta"
+                  className="account-close-button"
+                  onClick={closeAccount}
+                  type="button"
+                >
+                  <ArrowLeft size={24} aria-hidden="true" />
+                </button>
+                <SafeImage className="account-avatar" src={defaultClientPhoto} alt="" />
+                <div>
+                  <span>Perfil del cliente</span>
+                  <h2 id="account-sheet-title">{currentUser.name}</h2>
+                  <p>{currentUser.phone}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="account-subsection-header account-view-enter">
+                <button
+                  aria-label="Volver al perfil"
+                  className="account-subsection-back"
+                  onClick={() => setAccountSection('menu')}
+                  type="button"
+                >
+                  <ArrowLeft size={22} aria-hidden="true" />
+                </button>
+                <div>
+                  <span>Mi cuenta</span>
+                  <h2 id="account-sheet-title">
+                    {accountSection === 'edit'
                       ? 'Editar datos'
                       : accountSection === 'history'
                         ? 'Historial'
                         : accountSection === 'addresses'
                           ? 'Direcciones'
                           : 'Favoritos'}
-                </h2>
-                <p>{accountSection === 'menu' ? currentUser.phone : currentUser.name}</p>
+                  </h2>
+                </div>
               </div>
-            </div>
+            )}
 
             {accountSection === 'menu' ? (
               <div className="account-section-content">
@@ -1288,7 +1303,7 @@ export function ClientPortal({
             ) : null}
 
             {accountSection === 'edit' ? (
-              <div className="account-subsection">
+              <div className="account-subsection account-view-enter">
                 <div className="account-form-field">
                   <label htmlFor="profile-name">Nombre</label>
                   <input
@@ -1325,7 +1340,7 @@ export function ClientPortal({
             ) : null}
 
             {accountSection === 'history' ? (
-              <div className="account-subsection account-list">
+              <div className="account-subsection account-list account-view-enter">
                 {customerOrders.length ? (
                   customerOrders.map((order) => (
                     <article className="account-list-card" key={order.id}>
@@ -1351,7 +1366,7 @@ export function ClientPortal({
             ) : null}
 
             {accountSection === 'addresses' ? (
-              <div className="account-subsection account-list">
+              <div className="account-subsection account-list account-view-enter">
                 {currentUser.savedAddresses?.length ? (
                   currentUser.savedAddresses.map((address, index) => (
                     <article className="account-address-card" key={`${address}-${index}`}>
@@ -1373,7 +1388,7 @@ export function ClientPortal({
             ) : null}
 
             {accountSection === 'favorites' ? (
-              <div className="account-subsection">
+              <div className="account-subsection account-view-enter">
                 <div className="account-empty-state">
                   <Heart size={32} aria-hidden="true" />
                   <strong>Aun no tienes favoritos</strong>
