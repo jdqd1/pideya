@@ -3332,13 +3332,18 @@
 }
 
 .account-sheet {
+  align-content: start;
   animation: account-sheet-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
   background: #fff;
   border-radius: 28px 28px 0 0;
   box-shadow: 0 -24px 70px rgba(3, 24, 78, 0.28);
   display: grid;
   gap: 18px;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: min(82dvh, 620px);
+  max-height: min(82dvh, 620px);
   max-width: 520px;
+  overflow: hidden;
   padding: 18px 18px max(24px, env(safe-area-inset-bottom));
   width: min(100%, 520px);
 }
@@ -3663,12 +3668,19 @@
 }
 
 
+.account-section-content,
 .account-subsection {
+  align-content: start;
   display: grid;
   gap: 14px;
-  max-height: min(54dvh, 520px);
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-right: 2px;
+}
+
+.account-section-content {
+  gap: 18px;
 }
 
 .account-form-field {
