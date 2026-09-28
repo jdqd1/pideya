@@ -561,7 +561,7 @@ export function ClientPortal({
       setAccountOpen(false);
       setAccountClosing(false);
       setAccountSection('menu');
-    }, 240);
+    }, 300);
   };
 
   const logoutFromAccount = () => {
