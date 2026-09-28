@@ -1261,7 +1261,10 @@ export function ClientPortal({
               </article>
             ) : null}
 
-            <section className="restaurant-content-section">
+            <section
+              className="restaurant-content-section explore-content-enter"
+              key={`explore-content-${foodType}-${activeRestaurantStoreId ?? 'all'}`}
+            >
               {activeRestaurantStore ? (
                 <>
                   <div className="restaurant-section-heading">
