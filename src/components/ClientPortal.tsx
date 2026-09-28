@@ -597,9 +597,9 @@ export function ClientPortal({
         window.setTimeout(() => {
           setExploreCategoryLoading(false);
           exploreCategoryTimer.current = null;
-        }, 90);
+        }, 140);
       });
-    }, 260);
+    }, 460);
   };
 
   useEffect(() => {
@@ -1198,142 +1198,191 @@ export function ClientPortal({
             <div id="restaurant-focus" />
 
             {exploreCategoryLoading ? (
-              <div className="explore-category-loader" role="status" aria-live="polite">
-                <span className="explore-loader-ring" aria-hidden="true" />
-                <strong>Cargando opciones...</strong>
+              <div className="explore-skeleton" role="status" aria-live="polite" aria-label="Cargando resultados">
+                <div className="explore-skeleton-feature">
+                  <div className="skeleton-copy">
+                    <span className="skeleton-line short" />
+                    <span className="skeleton-line title" />
+                    <span className="skeleton-line medium" />
+                    <span className="skeleton-line price" />
+                    <span className="skeleton-button" />
+                  </div>
+                  <span className="skeleton-image" />
+                </div>
+
+                <div className="explore-skeleton-rails">
+                  {[0, 1].map((rail) => (
+                    <section className="explore-skeleton-rail" key={rail}>
+                      <div className="skeleton-section-heading">
+                        <span className="skeleton-line heading" />
+                        <span className="skeleton-pill" />
+                      </div>
+                      <div className="explore-skeleton-card-row">
+                        {[0, 1, 2].map((card) => (
+                          <article className="explore-skeleton-card" key={card}>
+                            <span className="skeleton-card-image" />
+                            <span className="skeleton-line card-title" />
+                            <span className="skeleton-line card-meta" />
+                            <span className="skeleton-line card-price" />
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+
+                <div className="skeleton-results-heading">
+                  <span className="skeleton-line heading wide" />
+                  <span className="skeleton-line medium" />
+                </div>
+
+                <div className="explore-skeleton-stores">
+                  {[0, 1].map((store) => (
+                    <article className="explore-skeleton-store" key={store}>
+                      <span className="skeleton-store-image" />
+                      <div>
+                        <span className="skeleton-line title" />
+                        <span className="skeleton-line medium" />
+                        <span className="skeleton-line short" />
+                      </div>
+                    </article>
+                  ))}
+                </div>
               </div>
-            ) : null}
-
-            {activeRestaurantStore ? (
-              <article className="store-spotlight-card">
-                <SafeImage src={activeRestaurantStore.imageUrl} alt="" />
-                <div className="store-spotlight-content">
-                  <span className="spotlight-kicker">
-                    <StoreIcon size={17} aria-hidden="true" />
-                    {activeRestaurantStore.open ? 'Abierto ahora' : 'Cerrado'}
-                  </span>
-                  <h2 id="restaurant-page-title">{activeRestaurantStore.name}</h2>
-                  <p>{activeRestaurantStore.type} | {activeRestaurantStore.tags.join(' | ')}</p>
-                  <div className="spotlight-meta">
-                    <span>
-                      <Star size={16} aria-hidden="true" fill="currentColor" /> {activeRestaurantStore.rating}
-                    </span>
-                    <span>
-                      <Clock size={16} aria-hidden="true" /> {activeRestaurantStore.deliveryMinutes}
-                    </span>
-                    <span>
-                      <Bike size={16} aria-hidden="true" /> {formatCurrency(activeRestaurantStore.deliveryFee)}
-                    </span>
-                  </div>
-                  <div className="store-address-line">
-                    <MapPin size={16} aria-hidden="true" />
-                    <span>{activeRestaurantStore.address}</span>
-                  </div>
-                  <button className="clear-store-button" onClick={() => setActiveRestaurantStoreId(null)} type="button">
-                    Ver otros locales
-                  </button>
-                </div>
-              </article>
-            ) : promotedProduct ? (
-              <article className="featured-deal-card">
-                <div className="featured-deal-copy">
-                  <span>
-                    <BadgePercent size={17} aria-hidden="true" />
-                    Oferta especial
-                  </span>
-                  <h2 id="restaurant-page-title">{promotedProduct.name}</h2>
-                  <p>{promotedProduct.description}</p>
-                  <div className="featured-price-row">
-                    <strong>{formatCurrency(promotedProduct.price)}</strong>
-                    <s>{formatCurrency(Number((promotedProduct.price * 1.35).toFixed(2)))}</s>
-                  </div>
-                  {renderProductQuantityControl(
-                    promotedProduct,
-                    !promotedProduct.available || !promotedStore.open,
-                    'featured-quantity-control',
-                  )}
-                </div>
-                <SafeImage src={promotedProduct.imageUrl} alt="" />
-                <b className="featured-discount-badge">
-                  <span>25%</span>
-                  <small>OFF</small>
-                </b>
-              </article>
-            ) : null}
-
-            <section
-              className="restaurant-content-section explore-content-enter"
-              key={`explore-content-${foodType}-${activeRestaurantStoreId ?? 'all'}`}
-            >
-              {activeRestaurantStore ? (
-                <>
-                  <div className="restaurant-section-heading">
-                    <div>
-                      <h2>{`Productos de ${activeRestaurantStore.name}`}</h2>
-                      <span>{`${menuProducts.length} productos disponibles`}</span>
+            ) : (
+              <div
+                className="explore-results-enter"
+                key={`explore-results-${foodType}-${activeRestaurantStoreId ?? 'all'}`}
+              >
+                {activeRestaurantStore ? (
+                  <article className="store-spotlight-card">
+                    <SafeImage src={activeRestaurantStore.imageUrl} alt="" />
+                    <div className="store-spotlight-content">
+                      <span className="spotlight-kicker">
+                        <StoreIcon size={17} aria-hidden="true" />
+                        {activeRestaurantStore.open ? 'Abierto ahora' : 'Cerrado'}
+                      </span>
+                      <h2 id="restaurant-page-title">{activeRestaurantStore.name}</h2>
+                      <p>{activeRestaurantStore.type} | {activeRestaurantStore.tags.join(' | ')}</p>
+                      <div className="spotlight-meta">
+                        <span>
+                          <Star size={16} aria-hidden="true" fill="currentColor" /> {activeRestaurantStore.rating}
+                        </span>
+                        <span>
+                          <Clock size={16} aria-hidden="true" /> {activeRestaurantStore.deliveryMinutes}
+                        </span>
+                        <span>
+                          <Bike size={16} aria-hidden="true" /> {formatCurrency(activeRestaurantStore.deliveryFee)}
+                        </span>
+                      </div>
+                      <div className="store-address-line">
+                        <MapPin size={16} aria-hidden="true" />
+                        <span>{activeRestaurantStore.address}</span>
+                      </div>
+                      <button className="clear-store-button" onClick={() => setActiveRestaurantStoreId(null)} type="button">
+                        Ver otros locales
+                      </button>
                     </div>
-                  </div>
-
-                  {Object.entries(groupedProducts).length ? (
-                    <div className="menu-product-list">
-                      {Object.entries(groupedProducts).map(([group, groupProducts]) => (
-                        <section className="restaurant-product-group" key={group}>
-                          <div className="menu-section-heading">
-                            <h3>{group}</h3>
-                            <span>{groupProducts.length} productos</span>
-                          </div>
-                          <div className="dish-list">
-                            {groupProducts.map((product) => renderDishCard(product))}
-                          </div>
-                        </section>
-                      ))}
+                  </article>
+                ) : promotedProduct ? (
+                  <article className="featured-deal-card">
+                    <div className="featured-deal-copy">
+                      <span>
+                        <BadgePercent size={17} aria-hidden="true" />
+                        Oferta especial
+                      </span>
+                      <h2 id="restaurant-page-title">{promotedProduct.name}</h2>
+                      <p>{promotedProduct.description}</p>
+                      <div className="featured-price-row">
+                        <strong>{formatCurrency(promotedProduct.price)}</strong>
+                        <s>{formatCurrency(Number((promotedProduct.price * 1.35).toFixed(2)))}</s>
+                      </div>
+                      {renderProductQuantityControl(
+                        promotedProduct,
+                        !promotedProduct.available || !promotedStore.open,
+                        'featured-quantity-control',
+                      )}
                     </div>
+                    <SafeImage src={promotedProduct.imageUrl} alt="" />
+                    <b className="featured-discount-badge">
+                      <span>25%</span>
+                      <small>OFF</small>
+                    </b>
+                  </article>
+                ) : null}
+
+                <section className="restaurant-content-section">
+                  {activeRestaurantStore ? (
+                    <>
+                      <div className="restaurant-section-heading">
+                        <div>
+                          <h2>{`Productos de ${activeRestaurantStore.name}`}</h2>
+                          <span>{`${menuProducts.length} productos disponibles`}</span>
+                        </div>
+                      </div>
+
+                      {Object.entries(groupedProducts).length ? (
+                        <div className="menu-product-list">
+                          {Object.entries(groupedProducts).map(([group, groupProducts]) => (
+                            <section className="restaurant-product-group" key={group}>
+                              <div className="menu-section-heading">
+                                <h3>{group}</h3>
+                                <span>{groupProducts.length} productos</span>
+                              </div>
+                              <div className="dish-list">
+                                {groupProducts.map((product) => renderDishCard(product))}
+                              </div>
+                            </section>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState body="Prueba otro tipo de comida o selecciona otro local." title="Sin productos" />
+                      )}
+                    </>
                   ) : (
-                    <EmptyState body="Prueba otro tipo de comida o selecciona otro local." title="Sin productos" />
-                  )}
-                </>
-              ) : (
-                <>
-                  {exploreProducts.length ? (
-                    <div className="product-rail-stack">
-                      {productRails.map((rail) => (
-                        <section className="product-rail-section" key={`${foodType}-${rail.id}`}>
-                          <div className="product-rail-heading">
-                            <h3>{rail.title}</h3>
-                            <small>{rail.products.length}</small>
-                          </div>
-                          <div className="product-rail-scroll" key={`${foodType}-${rail.id}-scroll`}>
-                            {rail.products.map((product, index) => renderRailProductCard(product, index))}
-                            {rail.products.length > 2 ? renderRailSeeAllCard(rail.title) : null}
-                          </div>
-                        </section>
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin productos" />
-                  )}
+                    <>
+                      {exploreProducts.length ? (
+                        <div className="product-rail-stack">
+                          {productRails.map((rail) => (
+                            <section className="product-rail-section" key={`${foodType}-${rail.id}`}>
+                              <div className="product-rail-heading">
+                                <h3>{rail.title}</h3>
+                                <small>{rail.products.length}</small>
+                              </div>
+                              <div className="product-rail-scroll" key={`${foodType}-${rail.id}-scroll`}>
+                                {rail.products.map((product, index) => renderRailProductCard(product, index))}
+                                {rail.products.length > 2 ? renderRailSeeAllCard(rail.title) : null}
+                              </div>
+                            </section>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin productos" />
+                      )}
 
-                  <div id="restaurant-results" className="restaurant-section-heading restaurant-results-heading">
-                    <div>
-                      <h2>
-                        {foodType === 'Todas'
-                          ? `${exploreTitle} cerca de vos`
-                          : `Locales con ${selectedFoodLabel}`}
-                      </h2>
-                      <span>{`${visibleStores.length} locales disponibles`}</span>
-                    </div>
-                  </div>
+                      <div id="restaurant-results" className="restaurant-section-heading restaurant-results-heading">
+                        <div>
+                          <h2>
+                            {foodType === 'Todas'
+                              ? `${exploreTitle} cerca de vos`
+                              : `Locales con ${selectedFoodLabel}`}
+                          </h2>
+                          <span>{`${visibleStores.length} locales disponibles`}</span>
+                        </div>
+                      </div>
 
-                  {visibleStores.length ? (
-                    <div className="local-list restaurant-local-list">
-                      {visibleStores.map((store, index) => renderStoreCard(store, index))}
-                    </div>
-                  ) : (
-                    <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin locales" />
+                      {visibleStores.length ? (
+                        <div className="local-list restaurant-local-list">
+                          {visibleStores.map((store, index) => renderStoreCard(store, index))}
+                        </div>
+                      ) : (
+                        <EmptyState body="Prueba otro tipo de comida o ajusta la busqueda." title="Sin locales" />
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </section>
+                </section>
+              </div>
+            )}
           </section>
         )}
       </div>
