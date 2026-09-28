@@ -1397,29 +1397,30 @@ export function ClientPortal({
               </div>
             ) : null}
 
-            {logoutConfirmOpen ? (
-              <div className="account-confirm-backdrop" role="presentation" onClick={() => setLogoutConfirmOpen(false)}>
-                <div
-                  aria-labelledby="logout-confirm-title"
-                  className="account-confirm-card"
-                  onClick={(event) => event.stopPropagation()}
-                  role="alertdialog"
-                >
-                  <span className="account-confirm-icon"><LogOut size={24} aria-hidden="true" /></span>
-                  <h3 id="logout-confirm-title">¿Cerrar sesion?</h3>
-                  <p>Tendras que iniciar sesion nuevamente para acceder a tu cuenta.</p>
-                  <div>
-                    <button className="account-confirm-cancel" onClick={() => setLogoutConfirmOpen(false)} type="button">
-                      Cancelar
-                    </button>
-                    <button className="account-confirm-logout" onClick={logoutFromAccount} type="button">
-                      Cerrar sesion
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : null}
           </section>
+        </div>
+      ) : null}
+
+      {logoutConfirmOpen && currentUser ? (
+        <div className="account-confirm-backdrop" role="presentation" onClick={() => setLogoutConfirmOpen(false)}>
+          <div
+            aria-labelledby="logout-confirm-title"
+            className="account-confirm-card"
+            onClick={(event) => event.stopPropagation()}
+            role="alertdialog"
+          >
+            <span className="account-confirm-icon"><LogOut size={24} aria-hidden="true" /></span>
+            <h3 id="logout-confirm-title">¿Cerrar sesion?</h3>
+            <p>Tendras que iniciar sesion nuevamente para acceder a tu cuenta.</p>
+            <div>
+              <button className="account-confirm-cancel" onClick={() => setLogoutConfirmOpen(false)} type="button">
+                Cancelar
+              </button>
+              <button className="account-confirm-logout" onClick={logoutFromAccount} type="button">
+                Cerrar sesion
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 
