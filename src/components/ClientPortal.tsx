@@ -1106,7 +1106,10 @@ export function ClientPortal({
                   )}
                 </div>
                 <SafeImage src={promotedProduct.imageUrl} alt="" />
-                <b>25%<small>OFF</small></b>
+                <b className="featured-discount-badge">
+                  <span>25%</span>
+                  <small>OFF</small>
+                </b>
               </article>
             ) : null}
 
