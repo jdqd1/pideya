@@ -830,7 +830,12 @@ export function ClientPortal({
               address.municipality ??
               current.city,
             state: address.state ?? address.region ?? current.state,
-            postalCode: address.postcode ?? current.postalCode,
+            postalCode:
+              address.postcode ??
+              address.postal_code ??
+              address.zip ??
+              address.zipcode ??
+              current.postalCode,
             latitude,
             longitude,
           }));
