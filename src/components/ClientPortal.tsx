@@ -1818,7 +1818,7 @@ export function ClientPortal({
                     />
                   </div>
 
-                  <div className="account-form-field">
+                  <div className="account-form-field address-field-wide">
                     <label htmlFor="address-neighborhood">Sector / urbanización</label>
                     <input
                       id="address-neighborhood"
@@ -1828,7 +1828,7 @@ export function ClientPortal({
                     />
                   </div>
 
-                  <div className="account-form-field">
+                  <div className="account-form-field address-field-wide">
                     <label htmlFor="address-city">Ciudad</label>
                     <input
                       id="address-city"
@@ -1838,7 +1838,7 @@ export function ClientPortal({
                     />
                   </div>
 
-                  <div className="account-form-field">
+                  <div className="account-form-field address-field-wide">
                     <label htmlFor="address-state">Estado / región</label>
                     <input
                       id="address-state"
@@ -1870,27 +1870,6 @@ export function ClientPortal({
                     />
                   </div>
 
-                  <div className="account-form-field">
-                    <label htmlFor="address-latitude">Latitud</label>
-                    <input
-                      id="address-latitude"
-                      inputMode="decimal"
-                      onChange={(event) => updateAddressField('latitude', event.target.value)}
-                      placeholder="Automático"
-                      value={editingAddressForm.latitude}
-                    />
-                  </div>
-
-                  <div className="account-form-field">
-                    <label htmlFor="address-longitude">Longitud</label>
-                    <input
-                      id="address-longitude"
-                      inputMode="decimal"
-                      onChange={(event) => updateAddressField('longitude', event.target.value)}
-                      placeholder="Automático"
-                      value={editingAddressForm.longitude}
-                    />
-                  </div>
                 </div>
 
                 <p className="account-address-helper">
