@@ -148,6 +148,41 @@ const scrollCategoryCards: CategoryCard[] = [
   },
 ];
 
+const homePromoBanners = [
+  {
+    id: 'promo-burger',
+    eyebrow: 'Promoción',
+    title: 'Combo favorito',
+    text: 'Hamburguesa, papas y bebida para tu próxima orden.',
+    imageUrl:
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=82',
+  },
+  {
+    id: 'promo-grocery',
+    eyebrow: 'Mercado',
+    title: 'Lo esencial en minutos',
+    text: 'Encuentra víveres y productos para tu casa cerca de ti.',
+    imageUrl:
+      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=82',
+  },
+  {
+    id: 'promo-dessert',
+    eyebrow: 'Antojos',
+    title: 'Un dulce para hoy',
+    text: 'Postres y opciones especiales listas para pedir.',
+    imageUrl:
+      'https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1200&q=82',
+  },
+  {
+    id: 'promo-pharmacy',
+    eyebrow: 'Cerca de ti',
+    title: 'Todo lo que necesitas',
+    text: 'Farmacia, cuidado personal y productos cotidianos.',
+    imageUrl:
+      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=1200&q=82',
+  },
+];
+
 const primaryFoodFilters: FoodFilter[] = [
   { value: 'Todas', label: 'Todos', icon: Grid2x2, tone: 'blue' },
   { value: 'Burgers', label: 'Hamburguesas', icon: Beef, tone: 'amber' },
@@ -213,6 +248,7 @@ export function ClientPortal({
   const [foodType, setFoodType] = useState('Todas');
   const [categoryKey, setCategoryKey] = useState<CategoryKey>('all');
   const [showMoreFoodTypes, setShowMoreFoodTypes] = useState(false);
+  const [homePromoIndex, setHomePromoIndex] = useState(0);
   const [activeRestaurantStoreId, setActiveRestaurantStoreId] = useState<string | null>(null);
   const [selectedLocationId, setSelectedLocationId] = useState<DeliveryLocationId>('home');
   const [locationMenuOpen, setLocationMenuOpen] = useState(false);
@@ -241,6 +277,18 @@ export function ClientPortal({
   const [lastOrderId, setLastOrderId] = useState('');
 
   const activeBottomNavIndex = accountOpen ? 3 : cartOpen ? 2 : clientView === 'restaurants' ? 1 : 0;
+
+  useEffect(() => {
+    if (clientView !== 'home') {
+      return;
+    }
+
+    const promoTimer = window.setInterval(() => {
+      setHomePromoIndex((current) => (current + 1) % homePromoBanners.length);
+    }, 4200);
+
+    return () => window.clearInterval(promoTimer);
+  }, [clientView]);
 
   useEffect(() => {
     if (!cartOpen && !accountOpen) {
@@ -1012,6 +1060,38 @@ export function ClientPortal({
               <div className="category-feature-grid">
                 {featuredCategoryCards.map((card) => renderCategoryCard(card))}
               </div>
+
+              <section className="home-promo-slider" aria-label="Promociones destacadas">
+                <div
+                  className="home-promo-track"
+                  style={{ transform: `translateX(-${homePromoIndex * 100}%)` }}
+                >
+                  {homePromoBanners.map((banner) => (
+                    <article className="home-promo-slide" key={banner.id}>
+                      <SafeImage src={banner.imageUrl} alt="" />
+                      <div className="home-promo-overlay" />
+                      <div className="home-promo-copy">
+                        <span>{banner.eyebrow}</span>
+                        <strong>{banner.title}</strong>
+                        <p>{banner.text}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="home-promo-dots" aria-label="Seleccionar promoción">
+                  {homePromoBanners.map((banner, index) => (
+                    <button
+                      aria-label={`Ver promoción ${index + 1}`}
+                      className={homePromoIndex === index ? 'active' : ''}
+                      key={banner.id}
+                      onClick={() => setHomePromoIndex(index)}
+                      type="button"
+                    />
+                  ))}
+                </div>
+              </section>
+
               <div className="category-group-heading category-group-heading-secondary">
                 <h2>Principales tiendas</h2>
               </div>
