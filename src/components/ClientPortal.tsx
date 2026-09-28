@@ -1337,7 +1337,7 @@ export function ClientPortal({
                         <span>{order.items.reduce((sum, item) => sum + item.quantity, 0)} productos</span>
                         <b>{formatCurrency(order.subtotal + order.deliveryFee)}</b>
                       </div>
-                      <small>{order.status.replaceAll('_', ' ')}</small>
+                      <small>{order.status.split('_').join(' ')}</small>
                     </article>
                   ))
                 ) : (
