@@ -32,9 +32,19 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [storeName, setStoreName] = useState('');
+  const [closing, setClosing] = useState(false);
 
   const title = isRegister ? 'Crear cuenta' : 'Iniciar sesion';
   const roles = useMemo(() => (isRegister ? registerRoles : loginRoles), [isRegister]);
+
+  const closeModal = () => {
+    if (closing) {
+      return;
+    }
+
+    setClosing(true);
+    window.setTimeout(onClose, 220);
+  };
 
   const submitAuth = (roleOverride?: Role) => {
     const authRole = roleOverride ?? selectedRole;
@@ -58,8 +68,17 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
   };
 
   return (
-    <div className="modal-backdrop" role="presentation">
-      <section aria-labelledby="auth-title" className="auth-modal" role="dialog">
+    <div
+      className={`modal-backdrop auth-modal-backdrop ${closing ? 'closing' : ''}`.trim()}
+      onClick={closeModal}
+      role="presentation"
+    >
+      <section
+        aria-labelledby="auth-title"
+        className={`auth-modal ${closing ? 'closing' : ''}`.trim()}
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+      >
         <div className="modal-heading auth-modal-heading">
           <div>
             <span className="zone-label">
@@ -68,7 +87,7 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
             <h2 id="auth-title">{title}</h2>
             {!isRegister ? <p>Entra como cliente con tu correo y contrasena.</p> : null}
           </div>
-          <button aria-label="Cerrar" className="icon-button" onClick={onClose} type="button">
+          <button aria-label="Cerrar" className="icon-button" onClick={closeModal} type="button">
             <X size={18} aria-hidden="true" />
           </button>
         </div>
@@ -83,12 +102,14 @@ export function AuthModal({ mode, onClose, onComplete }: AuthModalProps) {
             />
           ) : null}
           {isRegister && selectedRole === 'store' ? (
-            <input
-              aria-label="Nombre de la tienda"
-              onChange={(event) => setStoreName(event.target.value)}
-              placeholder="Nombre de la tienda"
-              value={storeName}
-            />
+            <div className="auth-field-reveal">
+              <input
+                aria-label="Nombre de la tienda"
+                onChange={(event) => setStoreName(event.target.value)}
+                placeholder="Nombre de la tienda"
+                value={storeName}
+              />
+            </div>
           ) : null}
           <label className="auth-input">
             <Mail size={18} aria-hidden="true" />
