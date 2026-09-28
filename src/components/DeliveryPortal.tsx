@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   BarChart3,
@@ -47,6 +47,34 @@ export function DeliveryPortal({
   const [activeDeliveryId, setActiveDeliveryId] = useState(deliveries[0]?.id ?? '');
   const [activeView, setActiveView] = useState<DeliveryView>('dashboard');
   const [deliveryMenuOpen, setDeliveryMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!deliveryMenuOpen) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const previousStyles = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+
+    return () => {
+      body.style.overflow = previousStyles.overflow;
+      body.style.position = previousStyles.position;
+      body.style.top = previousStyles.top;
+      body.style.width = previousStyles.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [deliveryMenuOpen]);
   const [serviceStatusByDeliveryId, setServiceStatusByDeliveryId] = useState<Record<string, DeliveryServiceStatus>>({});
   const [serviceConfirmAction, setServiceConfirmAction] = useState<DeliveryServiceStatus | null>(null);
   const [routeMapZoom, setRouteMapZoom] = useState(1);
