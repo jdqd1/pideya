@@ -4104,6 +4104,21 @@
   z-index: 50;
 }
 
+.auth-modal-backdrop {
+  align-items: center;
+  animation: auth-backdrop-in 200ms ease-out both;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: center;
+  padding: 22px;
+}
+
+.auth-modal-backdrop.closing {
+  animation: auth-backdrop-out 220ms ease-in both;
+}
+
 .cart-sheet-backdrop {
   align-items: flex-end;
   animation: cart-backdrop-fade 220ms ease-out both;
@@ -4915,6 +4930,7 @@
 }
 
 .auth-modal {
+  animation: auth-modal-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: #fff;
   border: 0;
   border-radius: 24px;
@@ -4925,6 +4941,62 @@
   overflow: hidden;
   padding: 0 18px 18px;
   width: min(100%, 460px);
+}
+
+.auth-modal.closing {
+  animation: auth-modal-out 220ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes auth-backdrop-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+  }
+
+  to {
+    opacity: 1;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+}
+
+@keyframes auth-backdrop-out {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+  }
+}
+
+@keyframes auth-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes auth-modal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
 }
 
 .auth-modal-heading {
@@ -5002,6 +5074,27 @@
 .auth-fields {
   display: grid;
   gap: 10px;
+}
+
+
+.auth-field-reveal {
+  animation: auth-field-reveal 180ms ease-out both;
+}
+
+.auth-field-reveal > input {
+  width: 100%;
+}
+
+@keyframes auth-field-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .auth-fields input,
