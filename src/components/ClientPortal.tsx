@@ -219,6 +219,7 @@ export function ClientPortal({
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsClosing, setNotificationsClosing] = useState(false);
   const [clientNotifications, setClientNotifications] = useState(initialClientNotifications);
+  const [notificationsClearing, setNotificationsClearing] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -595,6 +596,24 @@ export function ClientPortal({
       setNotificationsOpen(false);
       setNotificationsClosing(false);
     }, 300);
+  };
+
+
+  const clearNotifications = () => {
+    if (!clientNotifications.length || notificationsClearing) {
+      return;
+    }
+
+    setNotificationsClearing(true);
+    const animationDuration = 260;
+    const staggerDelay = 90;
+    const totalDuration =
+      animationDuration + Math.max(0, clientNotifications.length - 1) * staggerDelay;
+
+    window.setTimeout(() => {
+      setClientNotifications([]);
+      setNotificationsClearing(false);
+    }, totalDuration);
   };
 
   const submitOrder = () => {
@@ -1444,8 +1463,8 @@ export function ClientPortal({
               <div className="notification-sheet-actions">
                 <button
                   className={!clientNotifications.length ? 'hidden-action' : ''}
-                  disabled={!clientNotifications.length}
-                  onClick={() => setClientNotifications([])}
+                  disabled={!clientNotifications.length || notificationsClearing}
+                  onClick={clearNotifications}
                   type="button"
                 >
                   Limpiar
@@ -1463,8 +1482,16 @@ export function ClientPortal({
 
             <div className="notification-sheet-list">
               {clientNotifications.length ? (
-                clientNotifications.map((notification) => (
-                  <article key={notification.id}>
+                clientNotifications.map((notification, index) => (
+                  <article
+                    className={notificationsClearing ? 'clearing' : ''}
+                    key={notification.id}
+                    style={
+                      notificationsClearing
+                        ? { animationDelay: `${index * 90}ms` }
+                        : undefined
+                    }
+                  >
                     <span>
                       <Bell size={17} aria-hidden="true" />
                     </span>
