@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
+  BarChart3,
   Bike,
   CheckCircle2,
   ChevronRight,
@@ -14,7 +15,6 @@ import {
   Star,
   Truck,
   UserRound,
-  WalletCards,
 } from 'lucide-react';
 import pideyaLogo from '../assets/pideya-logo.png';
 import { ActionButton, EmptyState, MetricCard, Panel, SafeImage, StatusPill } from './Shared';
@@ -33,7 +33,7 @@ interface DeliveryPortalProps {
 type DeliveryView = 'dashboard' | 'available' | 'routes' | 'earnings' | 'profile' | 'history';
 type DeliveryServiceStatus = 'available' | 'offline';
 
-const deliveryMainViews: DeliveryView[] = ['dashboard', 'available', 'routes', 'earnings'];
+const deliveryMainViews: DeliveryView[] = ['dashboard', 'available', 'routes'];
 
 export function DeliveryPortal({
   deliveries,
@@ -403,10 +403,6 @@ export function DeliveryPortal({
           <Navigation size={21} aria-hidden="true" />
           <span>Rutas</span>
         </button>
-        <button className={activeView === 'earnings' ? 'active' : ''} onClick={() => navigateDeliverySection('earnings')} type="button">
-          <WalletCards size={21} aria-hidden="true" />
-          <span>Ganancias</span>
-        </button>
         <button
           className={deliveryMenuOpen || !deliveryMainViews.includes(activeView) ? 'active' : ''}
           onClick={() => setDeliveryMenuOpen(true)}
@@ -466,6 +462,14 @@ export function DeliveryPortal({
                 <span>
                   <strong>Historial</strong>
                   <small>Entregas completadas</small>
+                </span>
+                <ChevronRight size={20} aria-hidden="true" />
+              </button>
+              <button onClick={() => navigateDeliverySection('earnings')} type="button">
+                <BarChart3 size={20} aria-hidden="true" />
+                <span>
+                  <strong>Resumen de ganancias</strong>
+                  <small>{formatCurrency(activeDelivery?.earningsToday ?? 0)} hoy</small>
                 </span>
                 <ChevronRight size={20} aria-hidden="true" />
               </button>
