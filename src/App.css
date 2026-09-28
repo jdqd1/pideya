@@ -865,8 +865,17 @@
 
   .cart-launcher,
   .mobile-bottom-nav button strong,
-  .cart-count-pulse {
+  .cart-count-pulse,
+  .explore-category-loader,
+  .explore-loader-ring,
+  .explore-content-enter {
     animation: none;
+  }
+
+  .restaurant-app-page > .featured-deal-card,
+  .restaurant-app-page > .store-spotlight-card,
+  .restaurant-content-section {
+    transition: none;
   }
 }
 
@@ -2223,6 +2232,81 @@
 
 #restaurant-focus {
   scroll-margin-top: 18px;
+}
+
+
+.explore-category-loader {
+  align-items: center;
+  animation: explore-loader-in 180ms ease-out both;
+  color: #667085;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  min-height: 92px;
+  padding: 8px 0 14px;
+}
+
+.explore-category-loader strong {
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.explore-loader-ring {
+  animation: explore-loader-spin 720ms linear infinite;
+  border: 3px solid #dbe7fb;
+  border-radius: 999px;
+  border-top-color: var(--blue);
+  height: 24px;
+  width: 24px;
+}
+
+.restaurant-app-page > .featured-deal-card,
+.restaurant-app-page > .store-spotlight-card,
+.restaurant-content-section {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.restaurant-app-page.explore-category-loading > .featured-deal-card,
+.restaurant-app-page.explore-category-loading > .store-spotlight-card,
+.restaurant-app-page.explore-category-loading > .restaurant-content-section {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.explore-content-enter {
+  animation: explore-content-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes explore-loader-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes explore-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes explore-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .featured-deal-card {
