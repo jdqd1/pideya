@@ -1492,15 +1492,15 @@ export function ClientPortal({
             ) : (
               <div className="account-subsection-header account-view-enter">
                 <button
-                  aria-label="Volver al perfil"
+                  aria-label={accountSection === 'address-edit' ? 'Volver a direcciones' : 'Volver al perfil'}
                   className="account-subsection-back"
-                  onClick={() => setAccountSection('menu')}
+                  onClick={() => setAccountSection(accountSection === 'address-edit' ? 'addresses' : 'menu')}
                   type="button"
                 >
                   <ArrowLeft size={22} aria-hidden="true" />
                 </button>
                 <div>
-                  <span>Mi cuenta</span>
+                  <span>{accountSection === 'address-edit' ? 'Direcciones' : 'Mi cuenta'}</span>
                   <h2 id="account-sheet-title">
                     {accountSection === 'edit'
                       ? 'Editar datos'
@@ -1508,7 +1508,9 @@ export function ClientPortal({
                         ? 'Historial'
                         : accountSection === 'addresses'
                           ? 'Direcciones'
-                          : 'Favoritos'}
+                          : accountSection === 'address-edit'
+                            ? `Editar ${editingAddressIndex === 0 ? 'Casa' : editingAddressIndex === 1 ? 'Trabajo' : 'Otro'}`
+                            : 'Favoritos'}
                   </h2>
                 </div>
               </div>
@@ -1522,7 +1524,7 @@ export function ClientPortal({
                     Pedidos
                   </span>
                   <span>
-                    <strong>{currentUser.savedAddresses?.length ?? 0}</strong>
+                    <strong>{profileAddresses.filter(Boolean).length}</strong>
                     Direcciones
                   </span>
                   <span>
@@ -1626,23 +1628,62 @@ export function ClientPortal({
 
             {accountSection === 'addresses' ? (
               <div className="account-subsection account-list account-view-enter">
-                {currentUser.savedAddresses?.length ? (
-                  currentUser.savedAddresses.map((address, index) => (
-                    <article className="account-address-card" key={`${address}-${index}`}>
-                      <span><MapPin size={19} aria-hidden="true" /></span>
-                      <div>
-                        <strong>{index === 0 ? 'Casa' : index === 1 ? 'Trabajo' : `Direccion ${index + 1}`}</strong>
-                        <p>{address}</p>
-                      </div>
-                    </article>
-                  ))
-                ) : (
-                  <div className="account-empty-state">
-                    <MapPin size={30} aria-hidden="true" />
-                    <strong>No hay direcciones guardadas</strong>
-                    <p>Tus direcciones apareceran aqui cuando las agregues.</p>
+                {profileAddresses.map((address, index) => (
+                  <article className="account-address-card" key={index}>
+                    <span><MapPin size={19} aria-hidden="true" /></span>
+                    <div>
+                      <strong>{index === 0 ? 'Casa' : index === 1 ? 'Trabajo' : 'Otro'}</strong>
+                      <p>{address || 'Sin dirección guardada'}</p>
+                    </div>
+                    <button
+                      className="account-address-edit"
+                      onClick={() => openAddressEditor(index)}
+                      type="button"
+                    >
+                      <Edit3 size={16} aria-hidden="true" />
+                      <span>Editar</span>
+                    </button>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+
+            {accountSection === 'address-edit' ? (
+              <div className="account-subsection account-view-enter">
+                <div className="account-address-type">
+                  <span><MapPin size={19} aria-hidden="true" /></span>
+                  <div>
+                    <small>Tipo de dirección</small>
+                    <strong>{editingAddressIndex === 0 ? 'Casa' : editingAddressIndex === 1 ? 'Trabajo' : 'Otro'}</strong>
                   </div>
-                )}
+                </div>
+
+                <div className="account-form-field">
+                  <label htmlFor="address-value">Dirección</label>
+                  <textarea
+                    id="address-value"
+                    onChange={(event) => {
+                      setEditingAddressValue(event.target.value);
+                      setAddressSaved(false);
+                    }}
+                    placeholder="Escribe la dirección completa"
+                    rows={4}
+                    value={editingAddressValue}
+                  />
+                </div>
+
+                {addressSaved ? (
+                  <p className="account-success-message">Dirección actualizada correctamente.</p>
+                ) : null}
+
+                <button
+                  className="account-primary-button"
+                  disabled={!editingAddressValue.trim()}
+                  onClick={saveAddress}
+                  type="button"
+                >
+                  Guardar dirección
+                </button>
               </div>
             ) : null}
 
