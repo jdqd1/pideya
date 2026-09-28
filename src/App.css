@@ -270,13 +270,11 @@
   html,
   body,
   #root,
-  .public-client-shell,
-  .mobile-home-frame {
+  .public-client-shell {
     background: #0b4ee9;
   }
 
-  .public-client-shell,
-  .mobile-home-frame {
+  .public-client-shell {
     min-height: 100dvh;
   }
 
@@ -301,6 +299,14 @@
   max-width: 980px;
   min-height: 100vh;
   overflow: visible;
+}
+
+
+@media (display-mode: standalone) {
+  .mobile-home-frame {
+    background: #0b4ee9;
+    min-height: 100dvh;
+  }
 }
 
 .reference-hero {
