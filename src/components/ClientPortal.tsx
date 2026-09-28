@@ -293,7 +293,7 @@ export function ClientPortal({
   }, [clientView]);
 
   useEffect(() => {
-    if (!cartOpen && !accountOpen) {
+    if (!cartOpen && !accountOpen && !notificationsOpen) {
       return;
     }
 
@@ -318,7 +318,7 @@ export function ClientPortal({
       body.style.width = previousStyles.width;
       window.scrollTo(0, scrollY);
     };
-  }, [cartOpen, accountOpen]);
+  }, [cartOpen, accountOpen, notificationsOpen]);
 
   const activeRestaurantStore = activeRestaurantStoreId
     ? stores.find((store) => store.id === activeRestaurantStoreId) ?? null
