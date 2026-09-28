@@ -46,6 +46,7 @@ import { formatCurrency } from '../utils/format';
 type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops' | 'bakery' | 'desserts';
 type ClientView = 'home' | 'restaurants';
 type DeliveryLocationId = 'home' | 'work' | 'current';
+type AccountSection = 'menu' | 'edit' | 'history' | 'addresses' | 'favorites';
 
 const initialClientNotifications = [
   {
@@ -80,6 +81,7 @@ interface ClientPortalProps {
   onOpenLogin: () => void;
   onOpenRegister: () => void;
   onLogout: () => void;
+  onUpdateProfile: (updates: Pick<AppUser, 'name' | 'phone'>) => void;
   onCreateOrder: (input: {
     customerName: string;
     customerPhone: string;
@@ -203,6 +205,7 @@ export function ClientPortal({
   onOpenLogin,
   onOpenRegister,
   onLogout,
+  onUpdateProfile,
   onCreateOrder,
 }: ClientPortalProps) {
   const [clientView, setClientView] = useState<ClientView>('home');
@@ -220,6 +223,11 @@ export function ClientPortal({
   const [cartOpen, setCartOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [accountClosing, setAccountClosing] = useState(false);
+  const [accountSection, setAccountSection] = useState<AccountSection>('menu');
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [profileName, setProfileName] = useState(currentUser?.name ?? '');
+  const [profilePhone, setProfilePhone] = useState(currentUser?.phone ?? '');
+  const [profileSaved, setProfileSaved] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -538,21 +546,47 @@ export function ClientPortal({
 
   const openAccount = () => {
     setAccountClosing(false);
+    setAccountSection('menu');
+    setLogoutConfirmOpen(false);
+    setProfileName(currentUser?.name ?? '');
+    setProfilePhone(currentUser?.phone ?? '');
+    setProfileSaved(false);
     setAccountOpen(true);
   };
 
   const closeAccount = () => {
     setAccountClosing(true);
+    setLogoutConfirmOpen(false);
     window.setTimeout(() => {
       setAccountOpen(false);
       setAccountClosing(false);
+      setAccountSection('menu');
     }, 240);
   };
 
   const logoutFromAccount = () => {
+    setLogoutConfirmOpen(false);
     setAccountOpen(false);
     setAccountClosing(false);
+    setAccountSection('menu');
     onLogout();
+  };
+
+  const saveProfile = () => {
+    const name = profileName.trim();
+    const phone = profilePhone.trim();
+
+    if (!name || !phone) {
+      return;
+    }
+
+    onUpdateProfile({ name, phone });
+    setProfileSaved(true);
+  };
+
+  const openAccountSection = (section: AccountSection) => {
+    setProfileSaved(false);
+    setAccountSection(section);
   };
 
   const closeNotifications = () => {
@@ -1181,63 +1215,195 @@ export function ClientPortal({
           >
             <div className="account-profile-card">
               <button
-                aria-label="Cerrar cuenta"
+                aria-label={accountSection === 'menu' ? 'Cerrar cuenta' : 'Volver al perfil'}
                 className="account-close-button"
-                onClick={closeAccount}
+                onClick={accountSection === 'menu' ? closeAccount : () => setAccountSection('menu')}
                 type="button"
               >
                 <ArrowLeft size={24} aria-hidden="true" />
               </button>
               <SafeImage className="account-avatar" src={defaultClientPhoto} alt="" />
               <div>
-                <span>Perfil del cliente</span>
-                <h2 id="account-sheet-title">{currentUser.name}</h2>
-                <p>{currentUser.phone}</p>
+                <span>{accountSection === 'menu' ? 'Perfil del cliente' : 'Mi cuenta'}</span>
+                <h2 id="account-sheet-title">
+                  {accountSection === 'menu'
+                    ? currentUser.name
+                    : accountSection === 'edit'
+                      ? 'Editar datos'
+                      : accountSection === 'history'
+                        ? 'Historial'
+                        : accountSection === 'addresses'
+                          ? 'Direcciones'
+                          : 'Favoritos'}
+                </h2>
+                <p>{accountSection === 'menu' ? currentUser.phone : currentUser.name}</p>
               </div>
             </div>
 
-            <div className="account-summary-grid">
-              <span>
-                <strong>{customerOrders.length}</strong>
-                Pedidos
-              </span>
-              <span>
-                <strong>{currentUser.savedAddresses?.length ?? 0}</strong>
-                Direcciones
-              </span>
-              <span>
-                <strong>{homePreviewProducts.length}</strong>
-                Favoritos
-              </span>
-            </div>
+            {accountSection === 'menu' ? (
+              <>
+                <div className="account-summary-grid">
+                  <span>
+                    <strong>{customerOrders.length}</strong>
+                    Pedidos
+                  </span>
+                  <span>
+                    <strong>{currentUser.savedAddresses?.length ?? 0}</strong>
+                    Direcciones
+                  </span>
+                  <span>
+                    <strong>0</strong>
+                    Favoritos
+                  </span>
+                </div>
 
-            <div className="account-actions" aria-label="Opciones de cuenta">
-              <button type="button">
-                <Edit3 size={20} aria-hidden="true" />
-                <span>Editar datos</span>
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-              <button type="button">
-                <ClipboardList size={20} aria-hidden="true" />
-                <span>Historial</span>
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-              <button type="button">
-                <MapPin size={20} aria-hidden="true" />
-                <span>Direcciones</span>
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-              <button type="button">
-                <Heart size={20} aria-hidden="true" />
-                <span>Favoritos</span>
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-              <button className="account-logout-button" onClick={logoutFromAccount} type="button">
-                <LogOut size={20} aria-hidden="true" />
-                <span>Cerrar sesion</span>
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-            </div>
+                <div className="account-actions" aria-label="Opciones de cuenta">
+                  <button onClick={() => openAccountSection('edit')} type="button">
+                    <Edit3 size={20} aria-hidden="true" />
+                    <span>Editar datos</span>
+                    <ChevronRight size={20} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => openAccountSection('history')} type="button">
+                    <ClipboardList size={20} aria-hidden="true" />
+                    <span>Historial</span>
+                    <ChevronRight size={20} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => openAccountSection('addresses')} type="button">
+                    <MapPin size={20} aria-hidden="true" />
+                    <span>Direcciones</span>
+                    <ChevronRight size={20} aria-hidden="true" />
+                  </button>
+                  <button onClick={() => openAccountSection('favorites')} type="button">
+                    <Heart size={20} aria-hidden="true" />
+                    <span>Favoritos</span>
+                    <ChevronRight size={20} aria-hidden="true" />
+                  </button>
+                  <button className="account-logout-button" onClick={() => setLogoutConfirmOpen(true)} type="button">
+                    <LogOut size={20} aria-hidden="true" />
+                    <span>Cerrar sesion</span>
+                    <ChevronRight size={20} aria-hidden="true" />
+                  </button>
+                </div>
+              </>
+            ) : null}
+
+            {accountSection === 'edit' ? (
+              <div className="account-subsection">
+                <div className="account-form-field">
+                  <label htmlFor="profile-name">Nombre</label>
+                  <input
+                    id="profile-name"
+                    onChange={(event) => {
+                      setProfileName(event.target.value);
+                      setProfileSaved(false);
+                    }}
+                    value={profileName}
+                  />
+                </div>
+                <div className="account-form-field">
+                  <label htmlFor="profile-phone">Telefono</label>
+                  <input
+                    id="profile-phone"
+                    inputMode="tel"
+                    onChange={(event) => {
+                      setProfilePhone(event.target.value);
+                      setProfileSaved(false);
+                    }}
+                    value={profilePhone}
+                  />
+                </div>
+                {profileSaved ? <p className="account-success-message">Datos actualizados correctamente.</p> : null}
+                <button
+                  className="account-primary-button"
+                  disabled={!profileName.trim() || !profilePhone.trim()}
+                  onClick={saveProfile}
+                  type="button"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            ) : null}
+
+            {accountSection === 'history' ? (
+              <div className="account-subsection account-list">
+                {customerOrders.length ? (
+                  customerOrders.map((order) => (
+                    <article className="account-list-card" key={order.id}>
+                      <div>
+                        <strong>Pedido {order.id}</strong>
+                        <span>{order.createdAt}</span>
+                      </div>
+                      <div className="account-order-meta">
+                        <span>{order.items.reduce((sum, item) => sum + item.quantity, 0)} productos</span>
+                        <b>{formatCurrency(order.subtotal + order.deliveryFee)}</b>
+                      </div>
+                      <small>{order.status.replaceAll('_', ' ')}</small>
+                    </article>
+                  ))
+                ) : (
+                  <div className="account-empty-state">
+                    <ClipboardList size={30} aria-hidden="true" />
+                    <strong>Aun no tienes pedidos</strong>
+                    <p>Cuando realices un pedido aparecera aqui.</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {accountSection === 'addresses' ? (
+              <div className="account-subsection account-list">
+                {currentUser.savedAddresses?.length ? (
+                  currentUser.savedAddresses.map((address, index) => (
+                    <article className="account-address-card" key={`${address}-${index}`}>
+                      <span><MapPin size={19} aria-hidden="true" /></span>
+                      <div>
+                        <strong>{index === 0 ? 'Casa' : index === 1 ? 'Trabajo' : `Direccion ${index + 1}`}</strong>
+                        <p>{address}</p>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="account-empty-state">
+                    <MapPin size={30} aria-hidden="true" />
+                    <strong>No hay direcciones guardadas</strong>
+                    <p>Tus direcciones apareceran aqui cuando las agregues.</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {accountSection === 'favorites' ? (
+              <div className="account-subsection">
+                <div className="account-empty-state">
+                  <Heart size={32} aria-hidden="true" />
+                  <strong>Aun no tienes favoritos</strong>
+                  <p>Los restaurantes y productos que guardes apareceran aqui.</p>
+                </div>
+              </div>
+            ) : null}
+
+            {logoutConfirmOpen ? (
+              <div className="account-confirm-backdrop" role="presentation" onClick={() => setLogoutConfirmOpen(false)}>
+                <div
+                  aria-labelledby="logout-confirm-title"
+                  className="account-confirm-card"
+                  onClick={(event) => event.stopPropagation()}
+                  role="alertdialog"
+                >
+                  <span className="account-confirm-icon"><LogOut size={24} aria-hidden="true" /></span>
+                  <h3 id="logout-confirm-title">¿Cerrar sesion?</h3>
+                  <p>Tendras que iniciar sesion nuevamente para acceder a tu cuenta.</p>
+                  <div>
+                    <button className="account-confirm-cancel" onClick={() => setLogoutConfirmOpen(false)} type="button">
+                      Cancelar
+                    </button>
+                    <button className="account-confirm-logout" onClick={logoutFromAccount} type="button">
+                      Cerrar sesion
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}
