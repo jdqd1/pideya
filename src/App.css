@@ -3333,7 +3333,7 @@
 
 .account-sheet {
   align-content: start;
-  animation: account-sheet-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: account-profile-sheet-in 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: #fff;
   border-radius: 28px 28px 0 0;
   box-shadow: 0 -24px 70px rgba(3, 24, 78, 0.28);
@@ -3349,7 +3349,7 @@
 }
 
 .account-sheet.closing {
-  animation: account-sheet-out 240ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+  animation: account-profile-sheet-out 300ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 .notification-sheet {
@@ -3514,6 +3514,30 @@
 
   to {
     opacity: 0;
+  }
+}
+
+@keyframes account-profile-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+
+  72% {
+    transform: translateY(-1.2%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes account-profile-sheet-out {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
   }
 }
 
@@ -3906,11 +3930,12 @@
 
 .account-confirm-backdrop {
   align-items: center;
-  background: rgba(15, 23, 42, 0.48);
+  background: rgba(15, 23, 42, 0.52);
   display: flex;
   inset: 0;
   justify-content: center;
-  padding: 22px;
+  min-height: 100dvh;
+  padding: max(22px, env(safe-area-inset-top)) 22px max(22px, env(safe-area-inset-bottom));
   position: fixed;
   z-index: 70;
 }
