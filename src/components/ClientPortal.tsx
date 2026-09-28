@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   BadgePercent,
@@ -241,7 +241,6 @@ export function ClientPortal({
   const [lastOrderId, setLastOrderId] = useState('');
 
   const activeBottomNavIndex = accountOpen ? 3 : cartOpen ? 2 : clientView === 'restaurants' ? 1 : 0;
-  const bottomNavStyle = { '--nav-index': activeBottomNavIndex } as CSSProperties;
 
   useEffect(() => {
     if (!cartOpen && !accountOpen) {
@@ -1212,7 +1211,7 @@ export function ClientPortal({
         )}
       </div>
 
-      <nav className="mobile-bottom-nav" aria-label="Menu principal" style={bottomNavStyle}>
+      <nav className={`mobile-bottom-nav nav-index-${activeBottomNavIndex}`} aria-label="Menu principal">
         <span className="mobile-bottom-nav-indicator" aria-hidden="true" />
         <button
           className={clientView === 'home' ? 'active' : ''}
