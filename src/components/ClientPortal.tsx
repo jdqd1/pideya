@@ -46,7 +46,7 @@ import { formatCurrency } from '../utils/format';
 type CategoryKey = 'all' | 'restaurants' | 'drinks' | 'pharmacy' | 'shops' | 'bakery' | 'desserts';
 type ClientView = 'home' | 'restaurants';
 type DeliveryLocationId = 'home' | 'work' | 'current';
-type AccountSection = 'menu' | 'edit' | 'history' | 'addresses' | 'favorites';
+type AccountSection = 'menu' | 'edit' | 'history' | 'addresses' | 'address-edit' | 'favorites';
 
 const initialClientNotifications = [
   {
@@ -81,7 +81,7 @@ interface ClientPortalProps {
   onOpenLogin: () => void;
   onOpenRegister: () => void;
   onLogout: () => void;
-  onUpdateProfile: (updates: Pick<AppUser, 'name' | 'phone'>) => void;
+  onUpdateProfile: (updates: Partial<Pick<AppUser, 'name' | 'phone' | 'savedAddresses'>>) => void;
   onCreateOrder: (input: {
     customerName: string;
     customerPhone: string;
@@ -267,6 +267,14 @@ export function ClientPortal({
   const [profileName, setProfileName] = useState(currentUser?.name ?? '');
   const [profilePhone, setProfilePhone] = useState(currentUser?.phone ?? '');
   const [profileSaved, setProfileSaved] = useState(false);
+  const [profileAddresses, setProfileAddresses] = useState<string[]>(() => {
+    const addresses = [...(currentUser?.savedAddresses ?? [])].slice(0, 3);
+    while (addresses.length < 3) addresses.push('');
+    return addresses;
+  });
+  const [editingAddressIndex, setEditingAddressIndex] = useState(0);
+  const [editingAddressValue, setEditingAddressValue] = useState('');
+  const [addressSaved, setAddressSaved] = useState(false);
   const [cartCountPulse, setCartCountPulse] = useState(false);
   const previousCartItemsCount = useRef(0);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -657,7 +665,11 @@ export function ClientPortal({
     setLogoutConfirmOpen(false);
     setProfileName(currentUser?.name ?? '');
     setProfilePhone(currentUser?.phone ?? '');
+    const addresses = [...(currentUser?.savedAddresses ?? [])].slice(0, 3);
+    while (addresses.length < 3) addresses.push('');
+    setProfileAddresses(addresses);
     setProfileSaved(false);
+    setAddressSaved(false);
     setAccountOpen(true);
   };
 
@@ -693,7 +705,29 @@ export function ClientPortal({
 
   const openAccountSection = (section: AccountSection) => {
     setProfileSaved(false);
+    setAddressSaved(false);
     setAccountSection(section);
+  };
+
+  const openAddressEditor = (index: number) => {
+    setEditingAddressIndex(index);
+    setEditingAddressValue(profileAddresses[index] ?? '');
+    setAddressSaved(false);
+    setAccountSection('address-edit');
+  };
+
+  const saveAddress = () => {
+    const nextAddress = editingAddressValue.trim();
+
+    if (!nextAddress) {
+      return;
+    }
+
+    const nextAddresses = [...profileAddresses];
+    nextAddresses[editingAddressIndex] = nextAddress;
+    setProfileAddresses(nextAddresses);
+    onUpdateProfile({ savedAddresses: nextAddresses });
+    setAddressSaved(true);
   };
 
   const closeNotifications = () => {
