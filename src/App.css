@@ -803,6 +803,14 @@
 }
 
 @media (max-width: 520px) {
+  .account-address-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .address-field-wide {
+    grid-column: auto;
+  }
+
   .auth-screen {
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
@@ -5397,6 +5405,60 @@
 .account-address-type strong {
   color: var(--ink);
   font-size: 0.94rem;
+}
+
+
+.account-detect-location {
+  align-items: center;
+  background: #eef4ff;
+  border: 1px solid #d7e6ff;
+  border-radius: 15px;
+  color: var(--blue);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 14px;
+  width: 100%;
+}
+
+.account-detect-location:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.account-location-message,
+.account-address-helper {
+  border-radius: 13px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.account-location-message {
+  background: #f8fafc;
+  border: 1px solid #e4eaf2;
+  color: #5f6c84;
+}
+
+.account-address-helper {
+  background: #fff8e8;
+  border: 1px solid #f4e2b3;
+  color: #7a5a13;
+}
+
+.account-address-form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.address-field-wide {
+  grid-column: 1 / -1;
 }
 
 .account-empty-state {
