@@ -5212,18 +5212,31 @@
   font-weight: 900;
 }
 
-.account-form-field input {
+.account-form-field input,
+.account-form-field textarea {
   background: #f8fafc;
   border: 1px solid #dfe7f1;
   border-radius: 15px;
   color: var(--ink);
   font: inherit;
-  min-height: 52px;
   outline: none;
   padding: 0 14px;
 }
 
-.account-form-field input:focus {
+.account-form-field input {
+  min-height: 52px;
+}
+
+.account-form-field textarea {
+  line-height: 1.45;
+  min-height: 112px;
+  padding-bottom: 13px;
+  padding-top: 13px;
+  resize: vertical;
+}
+
+.account-form-field input:focus,
+.account-form-field textarea:focus {
   border-color: rgba(18, 104, 243, 0.62);
   box-shadow: 0 0 0 3px rgba(18, 104, 243, 0.1);
 }
@@ -5310,10 +5323,10 @@
 }
 
 .account-address-card {
-  align-items: start;
+  align-items: center;
   display: grid;
   gap: 11px;
-  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-columns: 38px minmax(0, 1fr) auto;
 }
 
 .account-address-card > span {
@@ -5330,6 +5343,60 @@
 .account-address-card p {
   line-height: 1.35;
   margin: 4px 0 0;
+}
+
+.account-address-edit {
+  align-items: center;
+  background: #eef4ff;
+  border: 1px solid #d7e6ff;
+  border-radius: 12px;
+  color: var(--blue);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 900;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.account-address-edit span {
+  white-space: nowrap;
+}
+
+.account-address-type {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e4eaf2;
+  border-radius: 16px;
+  display: grid;
+  gap: 11px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  padding: 13px;
+}
+
+.account-address-type > span {
+  align-items: center;
+  background: #eef4ff;
+  border-radius: 12px;
+  color: var(--blue);
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.account-address-type small {
+  color: var(--muted);
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.account-address-type strong {
+  color: var(--ink);
+  font-size: 0.94rem;
 }
 
 .account-empty-state {
